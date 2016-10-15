@@ -1,69 +1,85 @@
-#include "mathstr.h"
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
-static void normalize(char* n){
-    if(n == NULL){
-        return ;
+
+#include "mathstr.h"
+#define BASE 10
+
+void print_arr(int *arr, size_t size){
+
+    for(size_t i = 0; i < size; i++){
+        printf("%d ",arr[i]);
     }
+    printf("\n");
+}
+
+static int max(int a, int b){
+    if(a > b){
+        return a;
+    }
+    return b;
+}
+
+StrNumber* readnumber(const char* n){
+
+
+    if(n == NULL){
+        return NULL;
+    }
+    StrNumber *res = (StrNumber*) malloc(sizeof(StrNumber));
+    if(res == NULL){
+        return NULL;
+    }
+    res->sign = 0;
+    res->count = 0;
+
     int i = 0;
-    int pos = 0;
-    int havenum = 0;
-    int havesign = 0;
+    int lenstr = 0;
     while(n[i] != 0){
-        if(n[i] == '0' && !havenum){
+        lenstr++;
+        if(n[i] == '0' && !res->count){
             i++;
             continue;
         }
         if(isdigit(n[i])){
-            havenum = 1;
-            n[pos++] = n[i];
-            if((pos - 1) != i)
-            {
-                n[i] = 'A';
-            }
+            res->count++;
         }
-        if(n[i] == '-' && !havesign){
-            havesign = 1;
-            n[pos++] = n[i];
-            if((pos - 1) != i)
+        if((n[i] == '-' || n[i] == '+') && res->sign == 0){
+            res->sign = 1;
+            if(n[i] == '-')
             {
-                n[i] = 'A';
+                res->sign = -1;
             }
         }
         i++;
     }
-    n[pos++] = 0;
-    free(&n[pos]);
-}
-
-static char sign(int i){
-    if(i < 0){
-        return '-';
+    if(res->count < 1){
+        return NULL;
     }
-    return '0';
-}
-
-static int CheckNumber(const char *n, int *sign, size_t *len){
-    *len = strlen(n);
-    if(n == NULL || *len < 1){
-        return 0;
+    if(res->sign == 0){
+        res->sign = 1;
     }
-    *sign = 1;
-    int i = 0;
-    if(n[0] == '-'){
-        *sign = -1;
-        i++;
+    res->n = (int*) malloc(res->count * sizeof(int));
+    if(res->n == NULL){
+        return NULL;
     }
-
-    while(n[i] != 0){
+    i = lenstr;
+    int c = 0;
+    while(i > 0 && i--){
         if(!isdigit(n[i])){
-            return 0;
+            continue;
         }
-        i++;
+        if(c >= res->count){
+            break;
+        }
+        res->n[c] = (int)(n[i] - '0');
+        c++;
     }
-    return 1;
+
+    return res;
+
+
 }
 
 static char* MakeZero(){
@@ -75,115 +91,273 @@ static char* MakeZero(){
     res[1] = 0;
     return res;
 }
+char* makenumber(StrNumber *numb){
+    if(numb == NULL || numb->n == NULL || numb->count < 1){
+        return NULL;
+    }
+    int c = numb->count + 1;
+    if(numb->sign < 0){
+        c++;
+    }
+    char *res = malloc(c);
+    if(res == NULL){
+        return NULL;
+    }
+    res[c - 1] = 0;
+
+    for(int i = 0; i < c; i++){
+        res[c - i - 2] = (char)(numb->n[i] + '0');
+        if(!isdigit(res[c - i - 2])){
+            res[c - i - 2] = '?';
+        }
+    }
+    if(numb->sign < 0){
+        res[0] = '-';
+    }
+
+    return res;
+}
+
+StrNumber* nsadd_raw(StrNumber *a, StrNumber *b){
+    if(a == NULL || b == NULL ||
+            a->n == NULL || b->n == NULL){
+        return NULL;
+    }
+    int c = max(a->count, b->count);
+    if(c < 1){
+        return NULL;
+    }
+    if((a->sign * a->count) < (b->sign * b->count)){
+        StrNumber *tmp = a;
+        a = b;
+        b = tmp;
+        tmp = NULL;
+    }
+
+    StrNumber *res = (StrNumber*) malloc(sizeof(StrNumber));
+    if(res == NULL){
+        return NULL;
+    }
+    res->sign = 0;
+    res->count = 1;
+
+    res->n = (int*) malloc((1 + c) * sizeof(int));
+    if(res->n == NULL){
+        free(res);
+        return NULL;
+    }
+    res->count = c + 1;
+
+    for(int i = 0; i < res->count; i++){
+        res->n[i] = 0;
+    }
+
+    int carry = 0;
+    for(int i = 0; i < c; i++){
+
+        int t = carry;
+        if (a->count > i){
+            t += a->sign * a->n[i];
+        }
+        if (b->count > i){
+            t += b->sign * b->n[i];
+        }
+
+        carry = t / BASE;
+        res->n[i] += t % BASE;
+
+        if(res->n[i] < 0 && a->sign != b->sign){
+            if(a->count > b->count){
+                res->n[i + 1]--;
+                res->n[i] += BASE;
+            }else{
+                res->n[i] *= -1;
+                res->sign = -1;
+            }
+
+        }else if(a->sign == b->sign){
+            res->sign = a->sign;
+            res->n[i] *= a->sign;
+        }
+        //print_arr(res->n, res->count);
+
+    }
+    res->n[ res->count - 1] = 0;
+    if(carry > 0){
+        res->n[ res->count - 1] = carry;
+    }else if(carry < 0){
+        res->sign = -1;
+        res->n[ res->count - 1] = res->sign * carry;
+    }
+    carry = res->count - 1;
+    while(res->n[carry] == 0 && carry > 0){
+        carry--;
+    }
+    carry++;
+
+    free(&res->n[carry]);
+    res->count = carry;
+
+    if(res->sign == 0){
+        res->sign = 1;
+    }
+    return res;
+
+}
+
+StrNumber* nsmul_raw(StrNumber *a, StrNumber *b){
+    if(a == NULL || b == NULL ||
+            a->n == NULL || b->n == NULL){
+        return NULL;
+    }
+
+    int c = a->count * b->count + 1;
+    if(c < 1){
+        return NULL;
+    }
+
+
+    StrNumber *res = (StrNumber*) malloc(sizeof(StrNumber));
+    if(res == NULL){
+        return NULL;
+    }
+
+    res->sign = a->sign * b->sign;
+    res->count = 1;
+
+    res->n = (int*) malloc(c * sizeof(int));
+    if(res->n == NULL){
+        free(res);
+        return NULL;
+    }
+    res->count = c;
+
+    for(int i = 0; i < res->count; i++){
+        res->n[i] = 0;
+    }
+
+    for (int i = 0; i < a->count; i++)
+    {
+        for (int j = 0; j < b->count; j++)
+        {
+            res->n[i + j] += abs(a->n[i] * b->n[j]);
+        }
+
+    }
+
+    for (int i = 0; i < c; i++)
+    {
+        res->n[i + 1] +=  res->n[i] / BASE;
+        res->n[i] %= BASE;
+    }
+    c = res->count - 1;
+    while(res->n[c] == 0 && c > 0){
+        c--;
+    }
+    c++;
+
+    free(&res->n[c]);
+    res->count = c;
+    return res;
+
+}
+
+StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
+    if(a == NULL || b == NULL ||
+            a->n == NULL || b->n == NULL){
+        return NULL;
+    }
+
+    int c = max(a->count, b->count);
+    if(c < 1){
+        return NULL;
+    }
+
+
+    StrNumber *res = (StrNumber*) malloc(sizeof(StrNumber));
+    if(res == NULL){
+        return NULL;
+    }
+
+    res->sign = a->sign * b->sign;
+    res->count = 1;
+
+    res->n = (int*) malloc(c * sizeof(int));
+    if(res->n == NULL){
+        free(res);
+        return NULL;
+    }
+    res->count = c;
+
+    for(int i = 0; i < res->count; i++){
+        res->n[i] = 0;
+    }
+
+
+
+    c = res->count - 1;
+    while(res->n[c] == 0 && c > 0){
+        c--;
+    }
+    c++;
+
+    free(&res->n[c]);
+    res->count = c;
+    return res;
+
+}
 
 const char* nsadd(const char *a, const char *b){
-    int signa, signb;
-    size_t lena, lenb, lenr, offseta, offsetb;
-    const int addsize = 3;
-    if(!CheckNumber(a, &signa, &lena) || !CheckNumber(b, &signb, &lenb)){
+    StrNumber *an = readnumber(a);
+    StrNumber *bn = readnumber(b);
+    if(an == NULL || bn == NULL){
         return MakeZero();
     }
-    lenr = lena + addsize;
-    offseta = 0;
-    offsetb = lenr - lenb - addsize;
-    if(lenb > lena){
-        lenr = lenb + addsize;
-        offsetb = 0;
-        offseta = lenr - lena - addsize;
-    }
-    char *res = malloc(lenr);
+    StrNumber *res = nsadd_raw(an, bn);
     if(res == NULL){
         return MakeZero();
     }
-    res[lenr-1] = 0;
-    int ost = 0;
-    int suma = 0;
-    int sumb = 0;
-    for(size_t i = (lenr - addsize); i > 0; i--){
-        int dA = (((int)(i-offseta) > 0 && isdigit(a[i-offseta - 1])) ? a[i-offseta - 1] : '0');
-        int dB = (((int)(i-offsetb) > 0 && isdigit(b[i-offsetb - 1])) ? b[i-offsetb - 1] : '0');
-        dA = signa * (dA - '0');
-        dB = signb * (dB - '0');
-        suma += dA;
-        sumb += dB;
-        int t = dA + dB + ost;
-
-        res[i + 1] = abs(t % 10) + '0';
-        ost = t / 10;
-    }
-    res[1] = ost + '0';
-    if(suma > sumb){
-        res[0] = sign(signa);
-    }else if(sumb > suma){
-        res[0] = sign(signb);
-    }
-    normalize(res);
-    return res;
-
+    return makenumber(res);
 }
 
 const char* nssub(const char *a, const char *b){
-    size_t lenb = strlen(b);
-    if(b == NULL || lenb < 1){
+    StrNumber *an = readnumber(a);
+    StrNumber *bn = readnumber(b);
+    if(an == NULL || bn == NULL){
         return MakeZero();
     }
-    int needsign = 0;
-    if(b[0] != '-'){
-        lenb++;
-        needsign = 1;
-    }
-    char *btmp = malloc(lenb);
-    if(btmp == NULL){
-        return MakeZero();
-    }
-    if(needsign){
-        btmp[0] = '-';
-    }
-
-    for(size_t i = 0; i <= lenb; i++){
-        btmp[i + needsign] = b[i];
-    }
-
-    if(!needsign){
-        btmp[0] = '0';
-    }
-
-    const char *res = nsadd(a, btmp);
-    free(btmp);
-    return res;
-
-}
-
-const char* nsmul(const char *a, const char *b){
-    int signa, signb;
-    size_t lena, lenb, lenr, offseta, offsetb;
-    const int addsize = 2;
-    if(!CheckNumber(a, &signa, &lena) || !CheckNumber(b, &signb, &lenb)){
-        return MakeZero();
-    }
-
-    lenr = lena + lenb + addsize;
-    char *res = malloc(lenr);
+    bn->sign *= -1;
+    StrNumber *res = nsadd_raw(an, bn);
     if(res == NULL){
         return MakeZero();
     }
+    return makenumber(res);
+}
 
-    memset(res, 0, lenr);
-
-
-
-
-
-    for (int ix = 0; ix < lena; ix++)
-        for (int jx = 0; jx < lenb; jx++)
-            res[ix + jx - 1] += (a[ix] - '0') * (b[jx] - '0');
-
-    for (int ix = 0; ix < lenr - addsize + 1; ix++)
-    {
-        res[ix + 1] +=  res[ix] / 10 + '0';
-        res[ix] %= 10;
-        res[ix] += '0';
+const char* nsmul(const char *a, const char *b){
+    StrNumber *an = readnumber(a);
+    StrNumber *bn = readnumber(b);
+    if(an == NULL || bn == NULL){
+        return MakeZero();
     }
-    return res;
+    StrNumber *res = nsmul_raw(an, bn);
+    if(res == NULL){
+        return MakeZero();
+    }
+    return makenumber(res);
+
+}
+
+const char* nsdiv(const char *a, const char *b){
+    StrNumber *an = readnumber(a);
+    StrNumber *bn = readnumber(b);
+    if(an == NULL || bn == NULL){
+        return MakeZero();
+    }
+    StrNumber *res = nsdiv_raw(an, bn);
+    if(res == NULL){
+        return MakeZero();
+    }
+    return makenumber(res);
 
 }
