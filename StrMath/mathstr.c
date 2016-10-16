@@ -387,7 +387,7 @@ static int pusnton(int N, StrNumber *numb){
     return 1;
 }
 
-static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
+static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b, StrNumber **mod){
     if(a == NULL || b == NULL ||
             a->n == NULL || b->n == NULL){
         return NULL;
@@ -397,7 +397,6 @@ static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
     if(c < 1 || (b->count == 1 && b->n[0] == 0)){
         return NULL;
     }
-
 
     StrNumber *res = (StrNumber*) malloc(sizeof(StrNumber));
     if(res == NULL){
@@ -420,7 +419,6 @@ static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
         freenumber(res);
         return NULL;
     }
-
 
     for(int i = 0; i < res->count; i++){
         res->n[i] = 0;
@@ -521,22 +519,17 @@ static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
         comp->sign = -1;
         StrNumber *tmp = nsadd_raw(&div, comp);
 
-
-        /*printf("Circle:\n\tdiv:");
-        print_numb(&div);
-        printf("\ttmp:");
-        print_numb(tmp);
-        printf("\tres:");
-        print_numb(res);*/
-
         freenumber(comp);
         free(mult.n);
         free(div.n);
 
         if(nscompare(b, tmp, 1) == 1 && apos == (a->count - 1)){
-            //printf("Mod:");
-            //print_numb(tmp);
-            freenumber(tmp);
+            if(mod !=NULL){
+                *mod = tmp;
+                tmp = NULL;
+            }else{
+                freenumber(tmp);
+            }
             break;
         }
         div.count = tmp->count;
@@ -559,7 +552,6 @@ static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
 
     return res;
 }
-
 
 
 
@@ -628,7 +620,7 @@ const char* nsdiv(const char *a, const char *b){
         return MakeZero();
     }
 
-    StrNumber *res = nsdiv_raw(an, bn);
+    StrNumber *res = nsdiv_raw(an, bn, NULL);
     if(res == NULL){
         return MakeZero();
     }
@@ -640,3 +632,27 @@ const char* nsdiv(const char *a, const char *b){
 
     return str;
 }
+
+const char* nsmod(const char *a, const char *b){
+    StrNumber *an = readnumber(a);
+    StrNumber *bn = readnumber(b);
+    if(an == NULL || bn == NULL){
+        return MakeZero();
+    }
+
+    StrNumber *res , *mod;
+    res = nsdiv_raw(an, bn, &mod);
+    if(res == NULL || mod == NULL){
+        return MakeZero();
+    }
+
+    char *str = makenumber(mod);
+
+    freenumber(res);
+    freenumber(an);
+    freenumber(bn);
+    freenumber(mod);
+
+    return str;
+}
+

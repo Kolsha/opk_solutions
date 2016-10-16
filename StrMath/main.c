@@ -35,7 +35,7 @@ int main()
         return 1;
 
     }
-    printf("\n%s",nsdiv(a, b));
+    printf("\n%s",nsmod(a, b));
 
     return 0;
 }
