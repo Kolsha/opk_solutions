@@ -28,6 +28,8 @@ int main()
     printf("Write a and b:\n");
     a = GetTextFromConsole();
     b = GetTextFromConsole();
+    //a = "500";
+    //b = "50";
     if(a == NULL || b == NULL){
         printf("Memory 404!\n");
         return 1;

@@ -47,10 +47,10 @@ static int nscompare(StrNumber *a, StrNumber *b, int abs){
     return 0;
 }
 
-void print_arr(int *arr, size_t size){
+void print_numb(StrNumber *numb){
 
-    for(size_t i = 0; i < size; i++){
-        printf("%d ",arr[i]);
+    for(size_t i = 0; i < numb->count; i++){
+        printf("%d ",numb->n[i]);
     }
     printf("\n");
 }
@@ -255,8 +255,10 @@ static StrNumber* nsadd_raw(StrNumber *a, StrNumber *b){
         carry--;
     }
     carry++;
-
-    free(&res->n[carry]);
+    if(carry < res->count)
+    {
+        free(&res->n[carry]);
+    }
     res->count = carry;
 
     if(res->sign == 0){
@@ -354,10 +356,35 @@ static void incdecnumb(StrNumber *numb, int sign){
     if(res == NULL){
         return ;
     }
-    free(numb->n);
+    if(numb->n != NULL)
+    {
+        free(numb->n);
+    }
     numb->n = res->n;
     numb->count = res->count;
     free(res);
+}
+
+static int pusnton(int N, StrNumber *numb){
+    if(numb->n == NULL && numb->count != 0){
+        return 0;
+    } else if(!numb->count && !N){
+        return 1;
+    }
+    int *arr = malloc((numb->count + 1) * sizeof(int));
+    if(arr == NULL){
+        return 0;
+    }
+    int i = 0;
+    arr[i++] = N;
+    while(i <= numb->count){
+        arr[i] = numb->n[i - 1];
+        i++;
+    }
+    numb->count++;
+    free(numb->n);
+    numb->n = arr;
+    return 1;
 }
 
 static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
@@ -415,36 +442,122 @@ static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
         return res;
     }
 
-    StrNumber mult, *comp;
-    mult.n = (int*) malloc(sizeof(int));
-    mult.count = 1;
-    mult.sign = 1;
-    if(mult.n == NULL){
+    StrNumber div;
+    div.count = b->count;
+    div.sign = 1;
+    div.n = (int*) malloc(b->count * sizeof(int));
+
+    if(div.n == NULL){
         freenumber(res);
         return NULL;
     }
-    mult.n[0] = 2;
-    comp = nsmul_raw(b, &mult);
-    while((cmp = nscompare(a, comp, 1)) > 0){
+
+    for(int i = 0; i < b->count; i++){
+        div.n[b->count - i - 1] = a->n[a->count - i - 1];
+    }
+
+    int apos = b->count - 1;
+    int respos = 0;
+
+    while(2 < 3){
+        int addcounter = 0;
+        while(nscompare(b, &div, 1) == 1){
+            apos++;
+            addcounter++;
+            if(apos == a->count){
+                break;
+            }
+
+            if(!pusnton(a->n[a->count - apos - 1], &div))
+            {
+
+                freenumber(res);
+                freenumber(&div);
+                return NULL;
+            }
+            if(addcounter > 1){
+                res->n[respos++] = 0;
+            }
+
+        }
+
+        if(apos == a->count){
+            if(div.count == 0 || (div.count == 1 && !div.n[0])){
+                res->n[respos++] = 0;
+            }
+            break;
+        }
+
+
+        StrNumber mult ={1, NULL, 1};
+
+        mult.n = (int*) malloc(sizeof(int));
+        if(mult.n == NULL){
+            freenumber(res);
+            free(div.n);
+            return NULL;
+        }
+        mult.n[0] = 2;
+
+        StrNumber *comp = nsmul_raw(b, &mult);
+
+        while((cmp = nscompare(&div, comp, 1)) > 0){
+            freenumber(comp);
+            incdecnumb(&mult, 1);
+            comp = nsmul_raw(b, &mult);
+        }
+
+
+        if(cmp < 0){
+            incdecnumb(&mult, -1);
+            comp = nsmul_raw(b, &mult);
+
+        }
+        for(int i = 0; i < mult.count; i++)
+        {
+            res->n[respos++] = mult.n[i];
+        }
+
+        comp->sign = -1;
+        StrNumber *tmp = nsadd_raw(&div, comp);
+
+
+        /*printf("Circle:\n\tdiv:");
+        print_numb(&div);
+        printf("\ttmp:");
+        print_numb(tmp);
+        printf("\tres:");
+        print_numb(res);*/
+
         freenumber(comp);
-        incdecnumb(&mult, 1);
-        comp = nsmul_raw(b, &mult);
-        print_arr(comp->n, comp->count);
-    }
-    freenumber(comp);
-    if(cmp < 0){
-        incdecnumb(&mult, -1);
-    }
-    res->count = mult.count;
-    mult.sign = res->sign;
+        free(mult.n);
+        free(div.n);
 
-    free(&res->n[mult.count]);
-    copynumb(res, &mult);
+        if(nscompare(b, tmp, 1) == 1 && apos == (a->count - 1)){
+            //printf("Mod:");
+            //print_numb(tmp);
+            freenumber(tmp);
+            break;
+        }
+        div.count = tmp->count;
+        div.n = tmp->n;
 
-    freenumber(&mult);
+        if(tmp->count == 1 && !tmp->n[0]){
+            free(div.n);
+            div.count = 0;
+        }
+        free(tmp);
+
+    }
+    res->count = respos;
+    free(&res->n[respos]);
+    for(int i = 0; i < (res->count / 2); i++){
+        respos = res->n[i];
+        res->n[i] = res->n[res->count - i - 1];
+        res->n[res->count - i - 1] = respos;
+    }
 
     return res;
-
 }
 
 
