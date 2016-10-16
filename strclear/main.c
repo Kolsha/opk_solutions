@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <ctype.h>
+
 int strlen(const char *str){
     int len = 0;
     while(str[len] != 0)
@@ -8,6 +9,7 @@ int strlen(const char *str){
     }
     return len;
 }
+
 void delsym_and_past_space(char *str, size_t sym_pos, size_t str_len){
     if(sym_pos > 0)
     {
@@ -16,28 +18,35 @@ void delsym_and_past_space(char *str, size_t sym_pos, size_t str_len){
     for(int i = sym_pos; i <= str_len; i++)
         str[i] = str[i+1];
 }
+
 void delsym(char *str, size_t sym_pos, size_t str_len){
     for(int i = sym_pos; i <  str_len; i++)
         str[i] = str[i+1];
 }
-unsigned char *GetTextFromConsole(){
-    size_t c=1;
+
+char *GetTextFromConsole(){
+    size_t c = 1;
     int key;
-    unsigned char *s,*s1;
-    s = (char*) malloc((c)*sizeof(char));
-    if (s==NULL) return NULL;
+    char *s, *s1;
+    s = (char*) malloc((c) * sizeof(char));
+    if (s == NULL) {
+        return NULL;
+    }
     s[c-1] = '\0';
     while ((key = getchar ()) != 10) {
         s[c-1] = key;
         c++;
-        s1 = (char*)realloc(s, (c+1)*sizeof(char));
-        if (s1==NULL) break;
+        s1 = (char*) realloc(s, (c + 1) * sizeof(char));
+        if (s1 == NULL){
+            break;
+        }
         s = s1;
         s[c-1] = '\0';
     }
     s[c] = '\0';
     return s;
 }
+
 void strclear(char *string)
 {
     int i = 0;

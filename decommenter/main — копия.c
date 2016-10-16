@@ -26,22 +26,26 @@ unsigned char *GetTextFromFile(char* fn){
     return s;
 }
 
-unsigned char *GetTextFromConsole(){
-    size_t c=1;
+char *GetTextFromConsole(){
+    size_t c = 1;
     int key;
-    unsigned char *s,*s1;
-    s = (char*) malloc((c)*sizeof(char));
-    if (s==NULL) return NULL;
-    s[c-1]='\0';
-    while ((key = getchar ()) != 10) {
-        s[c-1]=key;
-        c++;
-        s1 = (char*)realloc(s, (c+1)*sizeof(char));
-        if (s1==NULL) break;
-        s=s1;
-        s[c-1]='\0';
+    char *s, *s1;
+    s = (char*) malloc((c) * sizeof(char));
+    if (s == NULL) {
+        return NULL;
     }
-    s[c]='\0';
+    s[c-1] = '\0';
+    while ((key = getchar ()) != 10) {
+        s[c-1] = key;
+        c++;
+        s1 = (char*) realloc(s, (c + 1) * sizeof(char));
+        if (s1 == NULL){
+            break;
+        }
+        s = s1;
+        s[c-1] = '\0';
+    }
+    s[c] = '\0';
     return s;
 }
 void AddToChar(char c){
