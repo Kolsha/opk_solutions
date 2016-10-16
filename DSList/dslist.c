@@ -2,7 +2,8 @@
 #include "dslist.h"
 
 static int check_list(DSList *list){
-    if(list == NULL || (list->next == NULL && list->prev == NULL)){
+    if(list == NULL){
+        //|| (list->next == NULL && list->prev == NULL)
         return 0;
     }
     return 1;
@@ -15,6 +16,7 @@ static DSList *head_of_list(DSList *list){
     DSList *tmp = list , *tmp2;
     while(tmp != NULL){
         tmp2 = tmp;
+
         tmp = tmp->prev;
     }
     return tmp2;
@@ -34,15 +36,18 @@ DSList*dslist_last(DSList*list){
 
 DSList *dslist_append(DSList *list, Pointer data){
 
-    if(!check_list(list)){
-        return NULL;
-    }
     DSList *nl = (DSList*) malloc(sizeof(DSList));
     if(nl == NULL){
         return NULL;
     }
 
     nl->data = data;
+    nl->next = NULL;
+    nl->prev = NULL;
+
+    if(list == NULL){
+        return nl;
+    }
 
     DSList *tmp = list , *tmp2;
     while(tmp != NULL){
@@ -57,15 +62,18 @@ DSList *dslist_append(DSList *list, Pointer data){
 }
 
 DSList *dslist_prepend(DSList *list, Pointer data){
-    if(!check_list(list)){
-        return NULL;
-    }
     DSList *nl = (DSList*) malloc(sizeof(DSList));
     if(nl == NULL){
         return NULL;
     }
 
     nl->data = data;
+    nl->next = NULL;
+    nl->prev = NULL;
+
+    if(list == NULL){
+        return nl;
+    }
 
     DSList *tmp = list , *tmp2;
     while(tmp != NULL){
@@ -176,7 +184,7 @@ size_t dslist_length(DSList*list){
     if(!check_list(list)){
         return 0;
     }
-    size_t length = 0;
+    size_t length = 1;
     DSList *tmp = head_of_list(list);
     while(tmp->next != NULL){
         tmp = tmp->next;
@@ -234,5 +242,37 @@ void dslist_foreach(DSList*list,
         func(head->data, user_data);
         head = head->next;
     }
+}
+
+DSList*dslist_find_custom(DSList*haystack, Pointer needle,
+                          int (*compare_func)(Pointer a, Pointer b)){
+    if(!check_list(haystack) || compare_func == NULL){
+        return NULL;
+    }
+    DSList *head = head_of_list(haystack);
+    while(head != NULL){
+        if(!compare_func(head->data, needle)){
+            return head;
+        }
+        head = head->next;
+    }
+    return NULL;
+}
+
+int dslist_position(DSList*list, DSList*el){
+    if(!check_list(list) || !check_list(el)){
+        return -1;
+    }
+    DSList *head = head_of_list(list);
+    int pos = 0;
+    while(head != NULL){
+        if(head == el){
+            return pos;
+        }
+        head = head->next;
+        pos++;
+    }
+    return -1;
+
 }
 
