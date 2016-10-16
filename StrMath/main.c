@@ -33,7 +33,7 @@ int main()
         return 1;
 
     }
-    printf("\n%s",nsmul(a, b));
+    printf("\n%s",nsdiv(a, b));
 
     return 0;
 }

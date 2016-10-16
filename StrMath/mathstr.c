@@ -5,6 +5,47 @@
 
 #include "mathstr.h"
 #define BASE 10
+#define MAX_NUMB_IN_INT 20
+
+typedef struct _StrNumber{
+    int sign;
+    int *n;
+    int count;
+} StrNumber;
+
+/*
+ * nscompare(n1, n2):
+ * a > b =  1
+ * a = b =  0
+ * a < b = -1
+ * Error =  2
+ */
+static int nscompare(StrNumber *a, StrNumber *b, int abs){
+
+    if(a->n == NULL || b->n == NULL){
+        return 2;
+    }
+    if(abs != 1){
+        if(a->sign > b->sign){
+            return 1;
+        } else if(a->sign < b->sign){
+            return -1;
+        }
+    }
+    if(a->count > b->count){
+        return 1;
+    } else if(a->count < b->count){
+        return -1;
+    }
+    for(int i = b->count - 1; i >= 0; i--){
+        if(a->n[i] > b->n[i]){
+            return 1;
+        }else if(a->n[i] < b->n[i]){
+            return -1;
+        }
+    }
+    return 0;
+}
 
 void print_arr(int *arr, size_t size){
 
@@ -21,7 +62,7 @@ static int max(int a, int b){
     return b;
 }
 
-StrNumber* readnumber(const char* n){
+static StrNumber* readnumber(const char* n){
 
 
     if(n == NULL){
@@ -78,8 +119,27 @@ StrNumber* readnumber(const char* n){
     }
 
     return res;
+}
 
+static void freenumber(StrNumber *numb){
+    if(numb == NULL) {
+        return ;
+    }
+    free(numb->n);
+    free(numb);
+}
 
+static int copynumb(StrNumber *in, StrNumber *source){
+    if(in->count != source->count ||
+            in->n == NULL || source->n == NULL){
+        return 0;
+    }
+    in->count = source->count;
+    in->sign = source->sign;
+    for(int i = 0; i < source->count; i++){
+        in->n[i] = source->n[i];
+    }
+    return 1;
 }
 
 static char* MakeZero(){
@@ -91,7 +151,8 @@ static char* MakeZero(){
     res[1] = 0;
     return res;
 }
-char* makenumber(StrNumber *numb){
+
+static char* makenumber(StrNumber *numb){
     if(numb == NULL || numb->n == NULL || numb->count < 1){
         return NULL;
     }
@@ -118,7 +179,7 @@ char* makenumber(StrNumber *numb){
     return res;
 }
 
-StrNumber* nsadd_raw(StrNumber *a, StrNumber *b){
+static StrNumber* nsadd_raw(StrNumber *a, StrNumber *b){
     if(a == NULL || b == NULL ||
             a->n == NULL || b->n == NULL){
         return NULL;
@@ -143,7 +204,7 @@ StrNumber* nsadd_raw(StrNumber *a, StrNumber *b){
 
     res->n = (int*) malloc((1 + c) * sizeof(int));
     if(res->n == NULL){
-        free(res);
+        freenumber(res);
         return NULL;
     }
     res->count = c + 1;
@@ -205,7 +266,7 @@ StrNumber* nsadd_raw(StrNumber *a, StrNumber *b){
 
 }
 
-StrNumber* nsmul_raw(StrNumber *a, StrNumber *b){
+static StrNumber* nsmul_raw(StrNumber *a, StrNumber *b){
     if(a == NULL || b == NULL ||
             a->n == NULL || b->n == NULL){
         return NULL;
@@ -227,7 +288,7 @@ StrNumber* nsmul_raw(StrNumber *a, StrNumber *b){
 
     res->n = (int*) malloc(c * sizeof(int));
     if(res->n == NULL){
-        free(res);
+        freenumber(res);
         return NULL;
     }
     res->count = c;
@@ -262,14 +323,51 @@ StrNumber* nsmul_raw(StrNumber *a, StrNumber *b){
 
 }
 
-StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
+static void inttonumb(int i, StrNumber *numb){
+    if(numb->n == NULL){
+        return ;
+    }
+    numb->sign = 1;
+    if(i < 0){
+        numb->sign = -1;
+    }
+    int c = 0;
+    while(i > 0){
+        numb->n[c] = (i % BASE) * numb->sign;
+        i /= BASE;
+        c++;
+    }
+    numb->count = c;
+}
+
+static void incdecnumb(StrNumber *numb, int sign){
+    StrNumber n, *res;
+    int a[1] = {1};
+    n.sign = 1;
+    if(sign < 0){
+        n.sign = -1;
+    }
+    n.count = 1;
+    n.n = a;
+    res = nsadd_raw(numb, &n);
+
+    if(res == NULL){
+        return ;
+    }
+    free(numb->n);
+    numb->n = res->n;
+    numb->count = res->count;
+    free(res);
+}
+
+static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
     if(a == NULL || b == NULL ||
             a->n == NULL || b->n == NULL){
         return NULL;
     }
 
-    int c = max(a->count, b->count);
-    if(c < 1){
+    int c = a->count;
+    if(c < 1 || (b->count == 1 && b->n[0] == 0)){
         return NULL;
     }
 
@@ -284,28 +382,73 @@ StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
 
     res->n = (int*) malloc(c * sizeof(int));
     if(res->n == NULL){
-        free(res);
+        freenumber(res);
         return NULL;
     }
     res->count = c;
+    if(b->count == 1 && b->n[0] == 1){
+        if (copynumb(res, a)){
+            return res;
+        }
+        freenumber(res);
+        return NULL;
+    }
+
 
     for(int i = 0; i < res->count; i++){
         res->n[i] = 0;
     }
 
-
-
-    c = res->count - 1;
-    while(res->n[c] == 0 && c > 0){
-        c--;
+    int cmp = nscompare(a, b, 1);
+    if(cmp > 1){
+        freenumber(res);
+        return NULL;
     }
-    c++;
 
-    free(&res->n[c]);
-    res->count = c;
+    if((a->count == 1 && a->n[0] == 0) || cmp < 1){
+        res->count = 1;
+        res->n[0] = 0;
+        if(cmp == 0 && !(a->count == 1 && a->n[0] == 0)){
+            res->n[0] = 1;
+        }
+        free(&res->n[1]);
+        return res;
+    }
+
+    StrNumber mult, *comp;
+    mult.n = (int*) malloc(sizeof(int));
+    mult.count = 1;
+    mult.sign = 1;
+    if(mult.n == NULL){
+        freenumber(res);
+        return NULL;
+    }
+    mult.n[0] = 2;
+    comp = nsmul_raw(b, &mult);
+    while((cmp = nscompare(a, comp, 1)) > 0){
+        freenumber(comp);
+        incdecnumb(&mult, 1);
+        comp = nsmul_raw(b, &mult);
+        print_arr(comp->n, comp->count);
+    }
+    freenumber(comp);
+    if(cmp < 0){
+        incdecnumb(&mult, -1);
+    }
+    res->count = mult.count;
+    mult.sign = res->sign;
+
+    free(&res->n[mult.count]);
+    copynumb(res, &mult);
+
+    freenumber(&mult);
+
     return res;
 
 }
+
+
+
 
 const char* nsadd(const char *a, const char *b){
     StrNumber *an = readnumber(a);
@@ -317,7 +460,13 @@ const char* nsadd(const char *a, const char *b){
     if(res == NULL){
         return MakeZero();
     }
-    return makenumber(res);
+    char *str = makenumber(res);
+
+    freenumber(res);
+    freenumber(an);
+    freenumber(bn);
+
+    return str;
 }
 
 const char* nssub(const char *a, const char *b){
@@ -331,7 +480,13 @@ const char* nssub(const char *a, const char *b){
     if(res == NULL){
         return MakeZero();
     }
-    return makenumber(res);
+    char *str = makenumber(res);
+
+    freenumber(res);
+    freenumber(an);
+    freenumber(bn);
+
+    return str;
 }
 
 const char* nsmul(const char *a, const char *b){
@@ -344,8 +499,13 @@ const char* nsmul(const char *a, const char *b){
     if(res == NULL){
         return MakeZero();
     }
-    return makenumber(res);
+    char *str = makenumber(res);
 
+    freenumber(res);
+    freenumber(an);
+    freenumber(bn);
+
+    return str;
 }
 
 const char* nsdiv(const char *a, const char *b){
@@ -354,10 +514,16 @@ const char* nsdiv(const char *a, const char *b){
     if(an == NULL || bn == NULL){
         return MakeZero();
     }
+
     StrNumber *res = nsdiv_raw(an, bn);
     if(res == NULL){
         return MakeZero();
     }
-    return makenumber(res);
+    char *str = makenumber(res);
 
+    freenumber(res);
+    freenumber(an);
+    freenumber(bn);
+
+    return str;
 }
