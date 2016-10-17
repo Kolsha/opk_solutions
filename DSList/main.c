@@ -22,38 +22,48 @@ int main(){
     int i = 7777777;
     int arr[arr_sz] = {99, 56, 78, 99, 321};
     char *s = "Test";
-    DSList *list = dslist_append(NULL, (Pointer)s);
-    DSList *list2 = dslist_append(NULL, (Pointer)s);
 
-    assert( list != NULL && strcmp((char*) list->data, s) == 0);
-    assert( dslist_length(list) == 1);
-    assert( dslist_reverse(list)->data == s );
-    assert( dslist_append(list, (Pointer) i) == list);
-    assert( dslist_last(list)->data == (Pointer) i);
-    assert( dslist_length(list) == 2);
+    DLNode *node = dslist_append(NULL, (Pointer)s);
 
-    DSList *list1 = dslist_prepend(list, (Pointer)i);
-    assert( list1 != list);
+    assert( node != NULL && strcmp((char*) dslist_first(node)->data, s) == 0);
 
-    assert( dslist_concat(list1, list2) == list1);
-    assert( dslist_position(list1, list2) == 3);
+    assert( dslist_length(node) == 1);
 
-    assert( dslist_length(list1) == 4);
+    assert( dslist_reverse(node)->end->data == s );
 
-    DSList *copy = dslist_copy(list1);
-    assert( dslist_length(copy) == 4);
-    assert( dslist_find(list1, (Pointer)s) == list);
+    assert( dslist_append(node, (Pointer) i) == node);
 
-    assert( dslist_insert(copy, (Pointer)arr[0]) == 1);
-    DSList *arr0 = dslist_find_custom(copy, (Pointer)arr[0], find_it);
-    assert( dslist_position(copy, arr0) == 1);
+    assert( dslist_last(node)->data == (Pointer) i);
 
-    DSList *arrlst = dslist_prepend(NULL, (Pointer)arr[0]);
+    assert( dslist_length(node) == 2);
+
+    assert( dslist_prepend(node, (Pointer) arr[0]) == node);
+
+    assert( dslist_first(node)->data == (Pointer) arr[0]);
+
+    assert( dslist_length(node) == 3);
+
+    DLNode *cloned = dslist_copy(node);
+
+    assert( cloned != NULL && dslist_length(cloned) == 3);
+
+    DLNode *arrlst = dslist_prepend(NULL, (Pointer)arr[0]);
     for(int i = 1; i < arr_sz; i++){
-        arrlst = dslist_prepend(arrlst, (Pointer)arr[i]);
+        dslist_prepend(arrlst, (Pointer)arr[i]);
     }
     dslist_foreach(arrlst, print_arr, print_test);
-    assert( dslist_nth(arrlst, 1)->data == (Pointer)arr[arr_sz - 1]);
+
+    assert( dslist_length(arrlst) == arr_sz );
+
+    DLList *arrend = dslist_find(arrlst, (Pointer)arr[arr_sz - 1]);
+
+    assert( arrend != NULL );
+
+    assert( dslist_position(arrlst, arrend) == 0 );
+
+    DLList *arr0 = dslist_find_custom(arrlst, (Pointer)arr[0], find_it);
+
+    assert(arrlst->end->data == arr0->data);
 
     printf("All tests passed!");
 

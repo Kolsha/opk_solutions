@@ -2,7 +2,7 @@
 #define MY_QUEUE_H
 
 #include <stdio.h>
-
+ // * and free
 typedef void *Pointer;
 
 typedef struct tQueue {

@@ -2,6 +2,20 @@
 
 #include "myqueue.h"
 
+static int max(int a, int b){
+    if(a > b){
+        return a;
+    }
+    return b;
+}
+
+static int min(int a, int b){
+    if(a > b){
+        return b;
+    }
+    return a;
+}
+
 int queue_create(Queue *pqueue){
 
     if(pqueue == NULL){
@@ -25,7 +39,7 @@ void queue_destroy(Queue *pqueue){
 }
 
 int queue_tune(Queue *pqueue, size_t initial_size, size_t increment){
-    if(pqueue == NULL){
+    if(pqueue == NULL || increment == 1){
         return 0;
     }
     pqueue->elements = (Pointer*) malloc(initial_size * sizeof(Pointer));
@@ -63,7 +77,7 @@ int queue_enqueue(Queue *pqueue, Pointer value){
         pqueue->end = pqueue->size;
     }
     if(pqueue->end == pqueue->start){
-        Pointer* tmp = (Pointer*) malloc((pqueue->size + pqueue->increment) * sizeof(Pointer));
+        Pointer* tmp = (Pointer*) malloc((pqueue->size * pqueue->increment) * sizeof(Pointer));
         if(tmp == NULL){
             return 0;
         }
@@ -97,7 +111,7 @@ Pointer queue_dequeue(Queue *pqueue){
     if(tmp != NULL){
         pqueue->start = pqueue->start - 1;
     }
-    pqueue->count = pqueue->count - 1;
+    pqueue->count--;
 
     if(pqueue->start == 0){
         pqueue->start = pqueue->size;
@@ -106,6 +120,30 @@ Pointer queue_dequeue(Queue *pqueue){
     if(pqueue->start == pqueue->end){
         pqueue->start = pqueue->size;
         pqueue->end = pqueue->size;
+    }
+
+    if(pqueue->count > 0){
+        size_t sc = pqueue->size/pqueue->count;
+        if(sc < 2){
+            return tmp;
+        }
+        size_t  nsz = (sc - 1) * pqueue->count;
+        Pointer* elms = (Pointer*) malloc(nsz * sizeof(Pointer));
+        if(elms == NULL){
+            return tmp;
+        }
+        size_t from = min(pqueue->end, pqueue->start);
+        size_t to= max(pqueue->end, pqueue->start);
+
+        for(size_t i = 0; i < to; i++){
+            elms[i] = pqueue->elements[i + from];
+        }
+        pqueue->start -= from;
+        pqueue->end -= from;
+        pqueue->size = nsz;
+        free(pqueue->elements);
+        pqueue->elements = elms;
+
     }
     return tmp;
 }
