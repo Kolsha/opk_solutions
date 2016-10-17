@@ -51,7 +51,7 @@ DSList*dslist_concat(DSList*list1, DSList*list2);
    data, соответствующий данным текущего элемента списка, и user_data,
    являющийся аргументом самой функции */
 void dslist_foreach(DSList*list,
-    void (*func)(Pointer data, Pointer user_data), Pointer user_data);
+                    void (*func)(Pointer data, Pointer user_data), Pointer user_data);
 
 /* Последний элемент списка */
 DSList*dslist_last(DSList*list);
@@ -66,7 +66,7 @@ DSList*dslist_find(DSList*haystack, Pointer needle);
 /* Возвращает первый элемент, для которого compare_func вернет 0,
    сравнивая каждый элемент списка с needle */
 DSList*dslist_find_custom(DSList*haystack, Pointer needle,
-  int (*compare_func)(Pointer a, Pointer b));
+                          int (*compare_func)(Pointer a, Pointer b));
 
 /* Возвращает позицию элемента el в списке или -1,
    если он не присутствует в списке */

@@ -9,7 +9,27 @@ static int check_list(DSList *list){
     return 1;
 }
 
+static void swap_data(DSList *a, DSList *b){
+    Pointer tmp = a->data;
+    a->data = b->data;
+    b->data = tmp;
+}
+
+static void copy_data(DSList *in, DSList *source){
+
+    in->data = source->data;
+
+}
+
+static void free_data(DSList *list){
+    if(check_list(list))
+    {
+        free(list->data);
+    }
+}
+
 static DSList *head_of_list(DSList *list){
+
     if(!check_list(list)){
         return NULL;
     }
@@ -20,6 +40,19 @@ static DSList *head_of_list(DSList *list){
         tmp = tmp->prev;
     }
     return tmp2;
+}
+
+static DSList *empty_list(){
+
+    DSList *nl = (DSList*) malloc(sizeof(DSList));
+    if(nl == NULL){
+        return NULL;
+    }
+
+    nl->data = NULL;
+    nl->next = NULL;
+    nl->prev = NULL;
+    return nl;
 }
 
 DSList*dslist_last(DSList*list){
@@ -36,14 +69,11 @@ DSList*dslist_last(DSList*list){
 
 DSList *dslist_append(DSList *list, Pointer data){
 
-    DSList *nl = (DSList*) malloc(sizeof(DSList));
+    DSList *nl = empty_list();
     if(nl == NULL){
         return NULL;
     }
-
     nl->data = data;
-    nl->next = NULL;
-    nl->prev = NULL;
 
     if(list == NULL){
         return nl;
@@ -62,14 +92,12 @@ DSList *dslist_append(DSList *list, Pointer data){
 }
 
 DSList *dslist_prepend(DSList *list, Pointer data){
-    DSList *nl = (DSList*) malloc(sizeof(DSList));
+
+    DSList *nl = empty_list();
     if(nl == NULL){
         return NULL;
     }
-
     nl->data = data;
-    nl->next = NULL;
-    nl->prev = NULL;
 
     if(list == NULL){
         return nl;
@@ -91,7 +119,7 @@ int dslist_insert(DSList *sibling, Pointer data){
     if(!check_list(sibling)){
         return 0;
     }
-    DSList *nl = (DSList*) malloc(sizeof(DSList));
+    DSList *nl = empty_list();
     if(nl == NULL){
         return 0;
     }
@@ -112,7 +140,7 @@ static DSList *dslist_remove_raw(DSList*list, int freeadata){
     }
     DSList *prev = list->prev, *next = list->next, *tmp = NULL;
     if(freeadata == 1){
-        free(list->data);
+        free_data(list);
     }
     free(list);
 
@@ -149,7 +177,8 @@ DSList*dslist_remove_all(DSList*list, Pointer data){
         tmp2 = tmp;
         jump = tmp->prev;
         tmp = tmp->next;
-        if(tmp2->data == data){
+        if(tmp2->data == data)
+        {
             dslist_remove_raw(tmp2, 1);
         }
     }
@@ -207,9 +236,7 @@ DSList*dslist_reverse(DSList*list){
     }
 
     while(head != tail && (head != NULL) && (tail != NULL)){
-        Pointer tmp = head->data;
-        head->data = tail->data;
-        tail->data = tmp;
+        swap_data(head, tail);
         head = head->next;
         tail = tail->prev;
     }
@@ -276,3 +303,79 @@ int dslist_position(DSList*list, DSList*el){
 
 }
 
+DSList*dslist_copy(DSList*list){
+    if(!check_list(list)){
+        return NULL;
+    }
+    DSList *head1 = head_of_list(list);
+    DSList *head2 = empty_list();
+    DSList *head2_stat = head2;
+    if(head2 == NULL || head1 == NULL){
+        return NULL;
+    }
+    while(head1 != NULL){
+        copy_data(head2, head1);
+
+        if(head1->next != NULL){
+            DSList *tmp = head2;
+            head2 = empty_list();
+            if(head2 == NULL){
+                return tmp;
+            }
+            tmp->next = head2;
+            head2->prev = tmp;
+        }
+        head1 = head1->next;
+    }
+    return head2_stat;
+}
+
+DSList*dslist_find(DSList*haystack, Pointer needle){
+    if(!check_list(haystack)){
+        return NULL;
+    }
+    DSList *head = head_of_list(haystack);
+    while(head != NULL){
+        if(head->data == needle){
+            return head;
+        }
+        head = head->next;
+    }
+    return NULL;
+
+}
+
+DSList*dslist_nth(DSList*list, int n){
+
+    if(!check_list(list)){
+        return NULL;
+    }
+    DSList *runner;
+    if(n > 0)
+    {
+        runner = head_of_list(list);
+    }
+    else{
+        runner = dslist_last(list);
+    }
+
+    if(runner == list && list->prev == NULL && list->next == NULL){
+        return (abs(n) == 1) ? list : NULL;
+    }
+    int pos = 1;
+    while(runner != NULL){
+        if(abs(n) == pos){
+            return runner;
+        }
+        if(n > 0)
+        {
+            runner = runner->next;
+        }
+        else{
+            runner = runner->prev;
+        }
+        pos++;
+
+    }
+    return NULL;
+}
