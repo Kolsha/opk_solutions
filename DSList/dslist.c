@@ -28,7 +28,7 @@ static void free_data(DSList *list){
     }
 }
 
-static DSList *head_of_list(DSList *list){
+DSList *dslist_first(DSList *list){
 
     if(!check_list(list)){
         return NULL;
@@ -88,7 +88,7 @@ DSList *dslist_append(DSList *list, Pointer data){
     nl->prev = tmp2;
     tmp2->next = nl;
 
-    return head_of_list(list);
+    return dslist_first(list);
 }
 
 DSList *dslist_prepend(DSList *list, Pointer data){
@@ -163,7 +163,7 @@ DSList *dslist_remove(DSList*list, Pointer data){
     }
     free(data);
 
-    return head_of_list(tmp);
+    return dslist_first(tmp);
 
 }
 
@@ -171,7 +171,7 @@ DSList*dslist_remove_all(DSList*list, Pointer data){
     if(!check_list(list)){
         return NULL;
     }
-    DSList *tmp = head_of_list(list) , *jump, *tmp2;
+    DSList *tmp = dslist_first(list) , *jump, *tmp2;
 
     while(tmp->next != NULL){
         tmp2 = tmp;
@@ -185,7 +185,7 @@ DSList*dslist_remove_all(DSList*list, Pointer data){
     if(tmp2 != NULL && jump == NULL){
         jump = tmp2;
     }
-    return head_of_list(jump);
+    return dslist_first(jump);
 }
 
 Pointer dslist_remove_next(DSList*sibling){
@@ -201,7 +201,7 @@ void dslist_free(DSList*list){
     if(!check_list(list)){
         return ;
     }
-    DSList *tmp = head_of_list(list), *tmp2;
+    DSList *tmp = dslist_first(list), *tmp2;
     while(tmp->next != NULL){
         tmp2 = tmp;
         tmp = tmp->next;
@@ -214,7 +214,7 @@ size_t dslist_length(DSList*list){
         return 0;
     }
     size_t length = 1;
-    DSList *tmp = head_of_list(list);
+    DSList *tmp = dslist_first(list);
     while(tmp->next != NULL){
         tmp = tmp->next;
         length++;
@@ -228,7 +228,7 @@ DSList*dslist_reverse(DSList*list){
         return NULL;
     }
 
-    DSList *head = head_of_list(list), *tail = dslist_last(list);
+    DSList *head = dslist_first(list), *tail = dslist_last(list);
     DSList *head_stat = head;
 
     if(head == tail){
@@ -246,13 +246,13 @@ DSList*dslist_reverse(DSList*list){
 
 DSList*dslist_concat(DSList*list1, DSList*list2){
     if(!check_list(list1)){
-        return head_of_list(list2);
+        return dslist_first(list2);
     }
     if(!check_list(list2)){
-        return head_of_list(list1);
+        return dslist_first(list1);
     }
     DSList *tail1 = dslist_last(list1);
-    DSList *head1 = head_of_list(list1), *head2 = head_of_list(list2);
+    DSList *head1 = dslist_first(list1), *head2 = dslist_first(list2);
     tail1->next = head2;
     head2->prev = tail1;
 
@@ -264,7 +264,7 @@ void dslist_foreach(DSList*list,
     if(!check_list(list) || func == NULL){
         return ;
     }
-    DSList *head = head_of_list(list);
+    DSList *head = dslist_first(list);
     while(head != NULL){
         func(head->data, user_data);
         head = head->next;
@@ -276,7 +276,7 @@ DSList*dslist_find_custom(DSList*haystack, Pointer needle,
     if(!check_list(haystack) || compare_func == NULL){
         return NULL;
     }
-    DSList *head = head_of_list(haystack);
+    DSList *head = dslist_first(haystack);
     while(head != NULL){
         if(!compare_func(head->data, needle)){
             return head;
@@ -290,7 +290,7 @@ int dslist_position(DSList*list, DSList*el){
     if(!check_list(list) || !check_list(el)){
         return -1;
     }
-    DSList *head = head_of_list(list);
+    DSList *head = dslist_first(list);
     int pos = 0;
     while(head != NULL){
         if(head == el){
@@ -307,7 +307,7 @@ DSList*dslist_copy(DSList*list){
     if(!check_list(list)){
         return NULL;
     }
-    DSList *head1 = head_of_list(list);
+    DSList *head1 = dslist_first(list);
     DSList *head2 = empty_list();
     DSList *head2_stat = head2;
     if(head2 == NULL || head1 == NULL){
@@ -334,7 +334,7 @@ DSList*dslist_find(DSList*haystack, Pointer needle){
     if(!check_list(haystack)){
         return NULL;
     }
-    DSList *head = head_of_list(haystack);
+    DSList *head = dslist_first(haystack);
     while(head != NULL){
         if(head->data == needle){
             return head;
@@ -353,7 +353,7 @@ DSList*dslist_nth(DSList*list, int n){
     DSList *runner;
     if(n > 0)
     {
-        runner = head_of_list(list);
+        runner = dslist_first(list);
     }
     else{
         runner = dslist_last(list);

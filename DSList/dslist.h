@@ -56,6 +56,8 @@ void dslist_foreach(DSList*list,
 /* Последний элемент списка */
 DSList*dslist_last(DSList*list);
 
+DSList*dslist_first(DSList*list);
+
 /* n-й элемент списка (или 0). Если n отрицательно, элементы
    считаются с конца (-1 -- последний и т.д.) */
 DSList*dslist_nth(DSList*list, int n);

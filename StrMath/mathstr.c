@@ -387,7 +387,7 @@ static int pusnton(int N, StrNumber *numb){
     return 1;
 }
 
-static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b, StrNumber **mod){
+static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
     if(a == NULL || b == NULL ||
             a->n == NULL || b->n == NULL){
         return NULL;
@@ -524,12 +524,7 @@ static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b, StrNumber **mod){
         free(div.n);
 
         if(nscompare(b, tmp, 1) == 1 && apos == (a->count - 1)){
-            if(mod !=NULL){
-                *mod = tmp;
-                tmp = NULL;
-            }else{
-                freenumber(tmp);
-            }
+            freenumber(tmp);
             break;
         }
         div.count = tmp->count;
@@ -620,7 +615,7 @@ const char* nsdiv(const char *a, const char *b){
         return MakeZero();
     }
 
-    StrNumber *res = nsdiv_raw(an, bn, NULL);
+    StrNumber *res = nsdiv_raw(an, bn);
     if(res == NULL){
         return MakeZero();
     }
@@ -640,18 +635,30 @@ const char* nsmod(const char *a, const char *b){
         return MakeZero();
     }
 
-    StrNumber *res , *mod;
-    res = nsdiv_raw(an, bn, &mod);
-    if(res == NULL || mod == NULL){
+    StrNumber *div, *mult, *res;
+    div = nsdiv_raw(an, bn);
+    if(div == NULL){
         return MakeZero();
     }
 
-    char *str = makenumber(mod);
+    mult = nsmul_raw(bn, div);
+    if(mult == NULL){
+        return MakeZero();
+    }
+    mult->sign *= -1;
+
+    res = nsadd_raw(an, mult);
+    if(res == NULL){
+        return MakeZero();
+    }
+
+    char *str = makenumber(res);
 
     freenumber(res);
     freenumber(an);
     freenumber(bn);
-    freenumber(mod);
+    freenumber(div);
+    freenumber(mult);
 
     return str;
 }

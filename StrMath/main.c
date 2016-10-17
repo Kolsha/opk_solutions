@@ -39,7 +39,12 @@ int main()
         return 1;
 
     }
-    printf("\n%s",nsmod(a, b));
+    printf("\nMul: %s",nsmul(a, b));
+    printf("\nDiv: %s",nsdiv(a, b));
+    printf("\nMod: %s",nsmod(a, b));
+
+    printf("\nAdd: %s",nsadd(a, b));
+    printf("\nSub: %s",nssub(a, b));
 
     return 0;
 }
