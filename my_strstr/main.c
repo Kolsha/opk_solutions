@@ -71,7 +71,7 @@ char *my_strstr_second(char *haystack, char *needle){ //only bair
             table[(int)needle[c]] = lensubstr - c;
     }
     int offset = 0;
-    while((offset+lensubstr) <= lenstr){
+    while((offset + lensubstr) <= lenstr){
         char stop = 0;
         int i;
         for(i = offset + lensubstr - 1; i > 0; i--){

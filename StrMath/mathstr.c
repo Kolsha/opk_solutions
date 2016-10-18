@@ -257,6 +257,8 @@ static StrNumber* nsadd_raw(StrNumber *a, StrNumber *b){
     carry++;
     if(carry < res->count)
     {
+        printf(">>> n:     %p\n", res->n);
+        printf(">>> carry: %d\n", carry);
         free(&res->n[carry]);
     }
     res->count = carry;

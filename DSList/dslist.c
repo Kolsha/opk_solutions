@@ -5,145 +5,144 @@ static int check_list(void *list){
     return list != NULL;
 }
 
-static void swap_data(DLList *a, DLList *b){
+static void swap_data(DLNode *a, DLNode *b){
     Pointer tmp = a->data;
     a->data = b->data;
     b->data = tmp;
 }
 
-static void free_data(DLList *list){
+static void free_data(DLNode *list){
     if(check_list(list))
     {
         free(list->data);
     }
 }
 
-DLList *dslist_first(DLNode *list){
+DLNode *dslist_first(DLList *list){
     if(!check_list(list) || list->count == 0){
         return NULL;
     }
     return list->first;
 }
 
-static DLNode *empty_node(DLList *list){
-
-    DLNode *nn = (DLNode*) malloc(sizeof(DLNode));
-    if(nn == NULL){
-        return NULL;
-    }
-
-    nn->count = (list != NULL) ? 1 : 0;
-    nn->end = list;
-    nn->first = list;
-    return nn;
-}
-
-static DLList *empty_list(){
+static DLList *empty_list(DLNode *node){
 
     DLList *nl = (DLList*) malloc(sizeof(DLList));
     if(nl == NULL){
         return NULL;
     }
 
-    nl->data = NULL;
-    nl->next = NULL;
-    nl->prev = NULL;
+    nl->count = (node != NULL) ? 1 : 0;
+    nl->last = node;
+    nl->first = node;
     return nl;
 }
 
-DLList* dslist_last(DLNode *list){
+static DLNode *empty_node(){
+
+    DLNode *nn = (DLNode*) malloc(sizeof(DLNode));
+    if(nn == NULL){
+        return NULL;
+    }
+
+    nn->data = NULL;
+    nn->next = NULL;
+    nn->prev = NULL;
+    return nn;
+}
+
+DLNode* dslist_last(DLList *list){
     if(!check_list(list) || list->count == 0){
         return NULL;
     }
-    return list->end;
+    return list->last;
 }
 
-DLNode *dslist_append(DLNode *node, Pointer data){
-    DLList *nl = empty_list();
-    if(nl == NULL){
+DLList *dslist_append(DLList *list, Pointer data){
+    DLNode *nn = empty_node();
+    if(nn == NULL){
         return NULL;
     }
-    nl->data = data;
+    nn->data = data;
 
-    if(node == NULL){
-        DLNode *tmp = empty_node(nl);
+    if(list == NULL){
+        DLList *tmp = empty_list(nn);
         if(tmp == NULL){
-            free(nl);
+            free(nn);
             return NULL;
         }
         return tmp;
     }
-    if(node->count > 0)
+    if(list->count > 0)
     {
-        nl->prev = node->end;
-        node->end->next = nl;
+        nn->prev = list->last;
+        list->last->next = nn;
     }
     else{
-        node->first = nl;
+        list->first = nn;
     }
-    node->end = nl;
-    node->count++;
+    list->last = nn;
+    list->count++;
 
-    return node;
+    return list;
 }
 
-DLNode *dslist_prepend(DLNode *node, Pointer data){
-    DLList *nl = empty_list();
-    if(nl == NULL){
+DLList *dslist_prepend(DLList *list, Pointer data){
+    DLNode *nn = empty_node();
+    if(nn == NULL){
         return NULL;
     }
-    nl->data = data;
+    nn->data = data;
 
-    if(node == NULL){
-        DLNode *tmp = empty_node(nl);
+    if(list == NULL){
+        DLList *tmp = empty_list(nn);
         if(tmp == NULL){
-            free(nl);
+            free(nn);
             return NULL;
         }
         return tmp;
     }
-    if(node->count > 0)
+    if(list->count > 0)
     {
-        nl->next = node->first;
-        node->first->prev = nl;
+        nn->next = list->first;
+        list->first->prev = nn;
     }
     else{
-        node->end = nl;
+        list->last = nn;
     }
-    node->first = nl;
-    node->count++;
+    list->first = nn;
+    list->count++;
 
-    return node;
+    return list;
 }
 
-int dslist_insert(DLNode *node, DLList *sibling, Pointer data){
+int dslist_insert(DLList *list, DLNode *sibling, Pointer data){
 
-    if(!check_list(node)){
+    if(!check_list(list)){
         return 0;
     }
-    DLList *nl = empty_list();
-    if(nl == NULL){
+    if(sibling == NULL || list->last == sibling){
+        return dslist_prepend(list, data) != NULL;
+    }
+    DLNode *nn = empty_node();
+    if(nn == NULL){
         return 0;
     }
-    nl->data = data;
-    if(sibling == NULL || node->end == sibling){
-        return dslist_prepend(node, data) != NULL;
-    }
-
-    nl->next = sibling->next;
-    sibling->next = nl;
-    nl->prev = sibling;
+    nn->data = data;
+    nn->next = sibling->next;
+    sibling->next = nn;
+    nn->prev = sibling;
 
     return 1;
 
 }
 
-static void dslist_remove_raw(DLList *list, int freeadata){
+static void dslist_remove_raw(DLNode *list, int freeadata){
     if(!check_list(list)){
         return ;
     }
-    DLList *prev = list->prev;
-    DLList *next = list->next;
+    DLNode *prev = list->prev;
+    DLNode *next = list->next;
     if(freeadata == 1){
         free_data(list);
     }
@@ -157,87 +156,87 @@ static void dslist_remove_raw(DLList *list, int freeadata){
     }
 }
 
-static DLNode *dslist_remove_few(DLNode *node, Pointer data, int count){
-    if(!check_list(node) || node->count < 1){
+static DLList *dslist_remove_few(DLList *list, Pointer data, int count){
+    if(!check_list(list) || list->count < 1){
         return 0;
     }
-    DLList *runner = node->first;
+    DLNode *runner = list->first;
     int pos = 0;
     while(runner != NULL){
         if(runner->data == data){
-            if(node->first == runner){
-                node->first = runner->next;
+            if(list->first == runner){
+                list->first = runner->next;
             }
-            if(node->end == runner){
-                node->end = runner->prev;
+            if(list->last == runner){
+                list->last = runner->prev;
             }
             dslist_remove_raw(runner, 1);
-            node->count--;
+            list->count--;
             pos++;
-            if((pos >= count && count > 0) || node->count < 1)
+            if((pos >= count && count > 0) || list->count < 1)
             {
-                return node;
+                return list;
             }
         }
     }
-    return node;
+    return list;
 }
 
-DLNode *dslist_remove(DLNode *node, Pointer data){
-    return dslist_remove_few(node, data, 1);
+int dslist_remove(DLList *list, Pointer data){
+    return dslist_remove_few(list, data, 1) == list;
 }
 
-DLNode *dslist_remove_all(DLNode *node, Pointer data){
-    return dslist_remove_few(node, data, -1);
+int dslist_remove_all(DLList *list, Pointer data){
+    return dslist_remove_few(list, data, -1) == list;
 }
 
-Pointer dslist_remove_next(DLNode *node, DLList *sibling){
+Pointer dslist_remove_next(DLList *list, DLNode *sibling){
     if(!check_list(sibling) ||  !check_list(sibling->next)
-            || !check_list(node) || node->count < 1){
+            || !check_list(list) || list->count < 1){
         return NULL;
     }
     Pointer data= sibling->next->data;
-    if(node->first == sibling){
-        node->first = sibling->next;
+    if(list->first == sibling){
+        list->first = sibling->next;
     }
-    if(node->end == sibling){
-        node->end = sibling->prev;
+    if(list->last == sibling){
+        list->last = sibling->prev;
     }
     dslist_remove_raw(sibling->next, 0);
-    node->count--;
+    list->count--;
     return data;
 }
 
-void dslist_free(DLNode *node){
-    if(!check_list(node)){
+void dslist_free(DLList *list){
+    if(!check_list(list)){
         return ;
     }
-    DLList *tmp = node->first, *tmp2;
+    DLNode *tmp = list->first, *tmp2;
     while(tmp->next != NULL){
         tmp2 = tmp;
         tmp = tmp->next;
         dslist_remove_raw(tmp2, 1);
     }
-    free(node);
+    free(list);
 }
 
-size_t dslist_length(DLNode *node){
-    if(!check_list(node)){
+size_t dslist_length(DLList *list){
+    if(!check_list(list)){
         return 0;
     }
-    return node->count;
+    return list->count;
 }
 
-DLNode *dslist_reverse(DLNode *node){
-    if(!check_list(node)){
-        return NULL;
+int dslist_reverse(DLList *list){
+    if(!check_list(list)){
+        return 0;
     }
 
-    DLList *head = node->first;
-    DLList *tail = node->end;
+    DLNode *head = list->first;
+    DLNode *tail = list->last;
 
     if(head == tail){
-        return node;
+        return 1;
     }
 
     while(head != tail && (head != NULL) && (tail != NULL)){
@@ -246,44 +245,45 @@ DLNode *dslist_reverse(DLNode *node){
         tail = tail->prev;
     }
 
-    return node;
+    return 1;
 }
 
-DLNode *dslist_concat(DLNode *node1, DLNode *node2){
-    if(!check_list(node1)){
-        return node2;
+DLList *dslist_concat(DLList *list1, DLList *list2){
+    if(!check_list(list1)){
+        return list2;
     }
-    if(!check_list(node2)){
-        return node1;
+    if(!check_list(list2)){
+        return list1;
     }
-    DLList *tail1 = node1->end;
-    DLList *head2 = node2->first;
+    DLNode *tail1 = list1->last;
+    DLNode *head2 = list2->first;
 
-    node1->count += node2->count;
+    list1->count += list2->count;
+    list1->last = list2->last;
+
     tail1->next = head2;
     head2->prev = tail1;
-
-    return node1;
+    return list1;
 }
 
-void dslist_foreach(DLNode *node,
+void dslist_foreach(DLList *list,
                     void (*func)(Pointer data, Pointer user_data), Pointer user_data){
-    if(!check_list(node) || func == NULL){
+    if(!check_list(list) || func == NULL){
         return ;
     }
-    DLList *head = node->first;
+    DLNode *head = list->first;
     while(head != NULL){
         func(head->data, user_data);
         head = head->next;
     }
 }
 
-DLList *dslist_find_custom(DLNode *haystack, Pointer needle,
+DLNode *dslist_find_custom(DLList *haystack, Pointer needle,
                            int (*compare_func)(Pointer a, Pointer b)){
     if(!check_list(haystack) || compare_func == NULL){
         return NULL;
     }
-    DLList *head = dslist_first(haystack);
+    DLNode *head = dslist_first(haystack);
     while(head != NULL){
         if(!compare_func(head->data, needle)){
             return head;
@@ -293,11 +293,11 @@ DLList *dslist_find_custom(DLNode *haystack, Pointer needle,
     return NULL;
 }
 
-int dslist_position(DLNode *node, DLList *el){
-    if(!check_list(node) || !check_list(el)){
+int dslist_position(DLList *list, DLNode *el){
+    if(!check_list(list) || !check_list(el)){
         return -1;
     }
-    DLList *head = node->first;
+    DLNode *head = list->first;
     int pos = 0;
     while(head != NULL){
         if(head == el){
@@ -314,25 +314,25 @@ static void foreach_for_copy(Pointer data, Pointer user_data){
     if(!check_list(data) || !check_list(user_data)){
         return ;
     }
-    dslist_append((DLNode*) user_data, data);
 
+    dslist_append((DLList*) user_data, data);
 }
 
-DLNode *dslist_copy(DLNode *node){
+DLList *dslist_copy(DLList *list){
 
-    DLNode* nn = empty_node(NULL);
-    if(nn == NULL){
+    DLList* nl = empty_list(NULL);
+    if(nl == NULL){
         return NULL;
     }
-    dslist_foreach(node, foreach_for_copy, nn);
-    return nn;
+    dslist_foreach(list, foreach_for_copy, nl);
+    return nl;
 }
 
-DLList *dslist_find(DLNode *haystack, Pointer needle){
+DLNode *dslist_find(DLList *haystack, Pointer needle){
     if(!check_list(haystack)){
         return NULL;
     }
-    DLList *head = haystack->first;
+    DLNode *head = haystack->first;
     while(head != NULL){
         if(head->data == needle){
             return head;
@@ -343,21 +343,21 @@ DLList *dslist_find(DLNode *haystack, Pointer needle){
 
 }
 
-DLList *dslist_nth(DLNode *node, int n){
+DLNode *dslist_nth(DLList *list, int n){
 
-    if(!check_list(node)){
+    if(!check_list(list)){
         return NULL;
     }
-    DLList *runner;
+    DLNode *runner;
     if(n > 0)
     {
-        runner = node->first;
+        runner = list->first;
     }
     else{
-        runner = node->end;
+        runner = list->last;
     }
 
-    if(node->first == node->end){
+    if(list->first == list->last){
         return (abs(n) == 1) ? runner : NULL;
     }
     int pos = 1;

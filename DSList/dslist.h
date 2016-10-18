@@ -3,55 +3,59 @@
 
 typedef void *Pointer;
 
-typedef struct tDLList {
-    Pointer data;
-    struct tDLList *next;
-    struct tDLList *prev;
-} DLList;
-
 typedef struct tDLNode {
-    size_t count;
-    struct tDLList *first;
-    struct tDLList *end;
+    Pointer data;
+    struct tDLNode *next;
+    struct tDLNode *prev;
 } DLNode;
 
+typedef struct tDLList {
+    size_t count;
+    struct tDLNode *first;
+    struct tDLNode *last;
+} DLList;
 
-DLNode *dslist_append(DLNode *node, Pointer data);
+int dslist_insert(DLList *list, DLNode *sibling, Pointer data);
 
-DLNode *dslist_prepend(DLNode *node, Pointer data);
+int dslist_remove(DLList *list, Pointer data);
 
-int dslist_insert(DLNode *node, DLList *sibling, Pointer data);
+int dslist_remove_all(DLList *list, Pointer data);
 
-DLNode *dslist_remove(DLNode *node, Pointer data);
+int dslist_reverse(DLList *list);
 
-DLNode *dslist_remove_all(DLNode *node, Pointer data);
+int dslist_position(DLList *list, DLNode *el);
 
-Pointer dslist_remove_next(DLNode *node, DLList *sibling);
 
-void dslist_free(DLNode *node);
+size_t dslist_length(DLList *list);
 
-size_t dslist_length(DLNode *node);
 
-DLNode *dslist_copy(DLNode *node);
+Pointer dslist_remove_next(DLList *list, DLNode *sibling);
 
-DLNode *dslist_reverse(DLNode *node);
 
-DLNode *dslist_concat(DLNode *node1, DLNode *node2);
+DLNode *dslist_last(DLList *list);
 
-void dslist_foreach(DLNode*node,
-                    void (*func)(Pointer data, Pointer user_data), Pointer user_data);
+DLNode *dslist_first(DLList *list);
 
-DLList *dslist_last(DLNode *node);
+DLNode *dslist_nth(DLList *list, int n);
 
-DLList *dslist_first(DLNode *node);
+DLNode *dslist_find(DLList *haystack, Pointer needle);
 
-DLList *dslist_nth(DLNode *node, int n);
-
-DLList *dslist_find(DLNode *haystack, Pointer needle);
-
-DLList *dslist_find_custom(DLNode *haystack, Pointer needle,
+DLNode *dslist_find_custom(DLList *haystack, Pointer needle,
                            int (*compare_func)(Pointer a, Pointer b));
 
-int dslist_position(DLNode *node, DLList *el);
+
+DLList *dslist_append(DLList *list, Pointer data);
+
+DLList *dslist_prepend(DLList *list, Pointer data);
+
+DLList *dslist_copy(DLList *list);
+
+DLList *dslist_concat(DLList *list1, DLList *list2);
+
+
+void dslist_free(DLList *list);
+
+void dslist_foreach(DLList *list,
+                    void (*func)(Pointer data, Pointer user_data), Pointer user_data);
 
 #endif

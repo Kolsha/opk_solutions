@@ -23,31 +23,33 @@ int main(){
     int arr[arr_sz] = {99, 56, 78, 99, 321};
     char *s = "Test";
 
-    DLNode *node = dslist_append(NULL, (Pointer)s);
+    DLList *list = dslist_append(NULL, (Pointer)s);
 
-    assert( node != NULL && strcmp((char*) dslist_first(node)->data, s) == 0);
+    assert( list != NULL && strcmp((char*) dslist_first(list)->data, s) == 0);
 
-    assert( dslist_length(node) == 1);
+    assert( dslist_length(list) == 1);
 
-    assert( dslist_reverse(node)->end->data == s );
+    assert( dslist_reverse(list) == 1 );
 
-    assert( dslist_append(node, (Pointer) i) == node);
+    assert( list->last->data == s );
 
-    assert( dslist_last(node)->data == (Pointer) i);
+    assert( dslist_append(list, (Pointer) i) == list);
 
-    assert( dslist_length(node) == 2);
+    assert( dslist_last(list)->data == (Pointer) i);
 
-    assert( dslist_prepend(node, (Pointer) arr[0]) == node);
+    assert( dslist_length(list) == 2);
 
-    assert( dslist_first(node)->data == (Pointer) arr[0]);
+    assert( dslist_prepend(list, (Pointer) arr[0]) == list);
 
-    assert( dslist_length(node) == 3);
+    assert( dslist_first(list)->data == (Pointer) arr[0]);
 
-    DLNode *cloned = dslist_copy(node);
+    assert( dslist_length(list) == 3);
+
+    DLList *cloned = dslist_copy(list);
 
     assert( cloned != NULL && dslist_length(cloned) == 3);
 
-    DLNode *arrlst = dslist_prepend(NULL, (Pointer)arr[0]);
+    DLList *arrlst = dslist_prepend(NULL, (Pointer)arr[0]);
     for(int i = 1; i < arr_sz; i++){
         dslist_prepend(arrlst, (Pointer)arr[i]);
     }
@@ -61,9 +63,9 @@ int main(){
 
     assert( dslist_position(arrlst, arrend) == 0 );
 
-    DLList *arr0 = dslist_find_custom(arrlst, (Pointer)arr[0], find_it);
+    DLNode *arr0 = dslist_find_custom(arrlst, (Pointer)arr[0], find_it);
 
-    assert(arrlst->end->data == arr0->data);
+    assert(arrlst->last->data == arr0->data);
 
     printf("All tests passed!");
 
