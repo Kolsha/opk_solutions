@@ -143,6 +143,7 @@ static void dslist_remove_raw(DLNode *list, int freedata){
     }
     DLNode *prev = list->prev;
     DLNode *next = list->next;
+    if(freedata == 1){
         free_data(list);
     }
     free(list);
