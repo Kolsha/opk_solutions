@@ -4,6 +4,8 @@
 #include <assert.h>
 #include "myqueue.h"
 
+#define ARR_SZ 5000
+
 int main()
 {
     Queue mq;
@@ -23,9 +25,10 @@ int main()
     assert( queue_peek(&mq) == a);
 
     assert( queue_dequeue(&mq) == a && queue_size(&mq) == 0);
-
-    for(size_t i = 0; i < 500; i++){
-        assert( queue_enqueue(&mq, (void*)&i) == 1);
+    size_t arr[ARR_SZ] = {0};
+    for(size_t i = 0; i < ARR_SZ; i++){
+        arr[i] = i;
+        assert( queue_enqueue(&mq, (void*)&arr[i]) == 1);
     }
 
     void *t;

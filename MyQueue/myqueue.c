@@ -123,12 +123,12 @@ Pointer queue_dequeue(Queue *pqueue){
     }
 
     if(pqueue->count > 0){
-        size_t sc = pqueue->size/pqueue->count;
-        if(sc < 2){
+        size_t size_to_count = pqueue->size / pqueue->count;
+        if(size_to_count < 3){
             return tmp;
         }
-        size_t  nsz = (sc - 1) * pqueue->count;
-        Pointer* elms = (Pointer*) malloc(nsz * sizeof(Pointer));
+        size_t  new_size = (size_to_count - 1) * pqueue->count;
+        Pointer* elms = (Pointer*) malloc(new_size * sizeof(Pointer));
         if(elms == NULL){
             return tmp;
         }
@@ -140,7 +140,7 @@ Pointer queue_dequeue(Queue *pqueue){
         }
         pqueue->start -= from;
         pqueue->end -= from;
-        pqueue->size = nsz;
+        pqueue->size = new_size;
         free(pqueue->elements);
         pqueue->elements = elms;
 

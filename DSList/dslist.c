@@ -118,11 +118,11 @@ DLList *dslist_prepend(DLList *list, Pointer data){
 
 int dslist_insert(DLList *list, DLNode *sibling, Pointer data){
 
-    if(!check_list(list)){
+    if(!check_list(list) || sibling == NULL){
         return 0;
     }
-    if(sibling == NULL || list->last == sibling){
-        return dslist_prepend(list, data) != NULL;
+    if( list->last == sibling){
+        return dslist_append(list, data) != NULL;
     }
     DLNode *nn = empty_node();
     if(nn == NULL){
@@ -137,13 +137,12 @@ int dslist_insert(DLList *list, DLNode *sibling, Pointer data){
 
 }
 
-static void dslist_remove_raw(DLNode *list, int freeadata){
+static void dslist_remove_raw(DLNode *list, int freedata){
     if(!check_list(list)){
         return ;
     }
     DLNode *prev = list->prev;
     DLNode *next = list->next;
-    if(freeadata == 1){
         free_data(list);
     }
     free(list);
