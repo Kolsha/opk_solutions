@@ -2,6 +2,7 @@
 
 #include "myqueue.h"
 
+
 static int max(int a, int b){
     if(a > b){
         return a;
@@ -50,8 +51,8 @@ int queue_tune(Queue *pqueue, size_t initial_size, size_t increment){
 
     pqueue->increment = increment;
     pqueue->size = initial_size;
-    pqueue->end = initial_size;
-    pqueue->start = initial_size;
+    pqueue->end = 0;
+    pqueue->start = 0;
     pqueue->count = 0;
 
     return 1;
@@ -65,34 +66,46 @@ size_t queue_size(Queue *pqueue){
 }
 
 int queue_enqueue(Queue *pqueue, Pointer value){
+
     if(pqueue == NULL){
         return 0;
     }
-    pqueue->count = pqueue->count + 1;
-    pqueue->elements[pqueue->end - 1] = value;
 
-    pqueue->end = pqueue->end - 1;
 
-    if(pqueue->end == 0){
-        pqueue->end = pqueue->size;
+    pqueue->count++;
+    pqueue->elements[pqueue->end] = value;
+
+    pqueue->end++;
+
+    if(pqueue->end == pqueue->size && pqueue->size != pqueue->count){
+        pqueue->end = 0;
     }
-    if(pqueue->end == pqueue->start){
-        Pointer* tmp = (Pointer*) malloc((pqueue->size * pqueue->increment) * sizeof(Pointer));
+    if(pqueue->size == pqueue->count){
+
+        size_t new_size = pqueue->size * pqueue->increment;
+
+        Pointer* tmp = (Pointer*) malloc(new_size * sizeof(Pointer));
         if(tmp == NULL){
             return 0;
         }
+        size_t dsize = new_size - pqueue->size;
 
         for(size_t i = 0; i < pqueue->size; i++){
-            if(i >= pqueue->end){
-                tmp[i + pqueue->increment] = pqueue->elements[i];
-            }
-            else{
+            if(pqueue->end > pqueue->start)
+            {
                 tmp[i] = pqueue->elements[i];
+
+            } else {
+                if(i <= pqueue->end){
+                    tmp[new_size - 1 - i] = pqueue->elements[i];
+                }else{
+                    tmp[i - pqueue->end] = pqueue->elements[i];
+                }
             }
         }
 
-        pqueue->size = pqueue->size + pqueue->increment;
-        pqueue->end = pqueue->end + pqueue->increment;
+
+        pqueue->size = new_size;
         free(pqueue->elements);
         pqueue->elements = tmp;
     }
@@ -103,23 +116,27 @@ Pointer queue_peek(Queue *pqueue){
     if(pqueue == NULL || pqueue->count == 0){
         return NULL;
     }
-    return pqueue->elements[pqueue->start - 1];
+    return pqueue->elements[pqueue->start];
 }
 
 Pointer queue_dequeue(Queue *pqueue){
-    Pointer tmp = queue_peek(pqueue);
-    if(tmp != NULL){
-        pqueue->start = pqueue->start - 1;
+
+    if(pqueue == NULL || pqueue->count == 0){
+        return NULL;
     }
+
+    Pointer tmp = pqueue->elements[pqueue->start];
+
+    pqueue->start++;
     pqueue->count--;
 
-    if(pqueue->start == 0){
-        pqueue->start = pqueue->size;
+    if(pqueue->start == pqueue->size){
+        pqueue->start = 0;
     }
 
     if(pqueue->start == pqueue->end){
-        pqueue->start = pqueue->size;
-        pqueue->end = pqueue->size;
+        pqueue->start = 0;
+        pqueue->end = 0;
     }
 
     if(pqueue->count > 0){

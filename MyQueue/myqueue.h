@@ -2,17 +2,17 @@
 #define MY_QUEUE_H
 
 #include <stdio.h>
- // * and free
+
 typedef void *Pointer;
 
 typedef struct tQueue {
 
-   Pointer *elements;
-   size_t increment;
-   size_t size;
-   size_t start;
-   size_t end;
-   size_t count;
+    Pointer *elements;
+    size_t increment;
+    size_t size;
+    size_t start;
+    size_t end;
+    size_t count;
 
 } Queue;
 
