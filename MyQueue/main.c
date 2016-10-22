@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "myqueue.h"
 
-#define ARR_SZ 500
+#define ARR_SZ 5000
 
 int main()
 {

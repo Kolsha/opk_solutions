@@ -2,20 +2,6 @@
 
 #include "mystack.h"
 
-static int max(int a, int b){
-    if(a > b){
-        return a;
-    }
-    return b;
-}
-
-static int min(int a, int b){
-    if(a > b){
-        return b;
-    }
-    return a;
-}
-
 int stack_create(Stack *pstack){
 
     if(pstack == NULL){
@@ -29,6 +15,7 @@ int stack_create(Stack *pstack){
 }
 
 void stack_destroy(Stack *pstack){
+
     if(pstack == NULL){
         return ;
     }
@@ -37,6 +24,7 @@ void stack_destroy(Stack *pstack){
 }
 
 int stack_tune(Stack *pstack, size_t initial_size, size_t increment){
+
     if(pstack == NULL || increment == 1){
         return 0;
     }
@@ -54,6 +42,7 @@ int stack_tune(Stack *pstack, size_t initial_size, size_t increment){
 }
 
 size_t stack_size(Stack *pstack){
+
     if(pstack == NULL){
         return 0;
     }
@@ -61,28 +50,25 @@ size_t stack_size(Stack *pstack){
 }
 
 int stack_push(Stack *pstack, Pointer value){
+
     if(pstack == NULL){
         return 0;
     }
 
+    if(pstack->pos >= pstack->size){
+        size_t new_size = (pstack->size * pstack->inc);
+        Pointer* elms = (Pointer*) realloc(pstack->elements, new_size * sizeof(Pointer));
 
-    if(pstack->pos >= pstack->start){
-        Pointer* tmp = (Pointer*) malloc((pstack->size * pstack->inc) * sizeof(Pointer));
-        if(tmp == NULL){
+        if(elms == NULL){
             return 0;
         }
 
-
-
-        pstack->size *=  pstack->inc;
-        free(pstack->elements);
-        pstack->elements = tmp;
+        pstack->elements = elms;
     }
-
-    pstack->elements[pstack->pos] = value;
-
     pstack->pos++;
-    return 1;
+    pstack->elements[pstack->pos - 1] = value;
+
+    return pstack->elements[pstack->pos - 1] == value;
 }
 
 Pointer stack_peek(Stack *pstack){
@@ -92,44 +78,30 @@ Pointer stack_peek(Stack *pstack){
     return pstack->elements[pstack->pos - 1];
 }
 
-Pointer queue_dequeue(Stack *pstack){
-    Pointer tmp = stack_peek(pstack);
-    if(tmp != NULL){
-        pstack->start = pstack->start - 1;
-    }
-    pstack->count--;
+Pointer stack_pop(Stack *pstack){
 
-    if(pstack->start == 0){
-        pstack->start = pstack->size;
+    if(pstack == NULL || pstack->pos == 0){
+        return NULL;
     }
 
-    if(pstack->start == pstack->end){
-        pstack->start = pstack->size;
-        pstack->end = pstack->size;
-    }
+    Pointer tmp = pstack->elements[pstack->pos - 1];
+    pstack->pos--;
 
-    if(pstack->count > 0){
-        size_t size_to_count = pstack->size / pstack->count;
+    if(pstack->pos > 0){
+        size_t size_to_count = pstack->size / pstack->pos;
         if(size_to_count < 3){
             return tmp;
         }
-        size_t  new_size = (size_to_count - 1) * pstack->count;
-        Pointer* elms = (Pointer*) malloc(new_size * sizeof(Pointer));
+        size_t  new_size = (size_to_count - 1) * pstack->pos;
+        Pointer* elms = (Pointer*) realloc(pstack->elements, new_size * sizeof(Pointer));
+
         if(elms == NULL){
             return tmp;
         }
-        size_t from = min(pstack->end, pstack->start);
-        size_t to= max(pstack->end, pstack->start);
 
-        for(size_t i = 0; i < to; i++){
-            elms[i] = pstack->elements[i + from];
-        }
-        pstack->start -= from;
-        pstack->end -= from;
-        pstack->size = new_size;
-        free(pstack->elements);
         pstack->elements = elms;
 
     }
+
     return tmp;
 }

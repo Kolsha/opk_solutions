@@ -4,38 +4,37 @@
 #include <assert.h>
 #include "mystack.h"
 
-#define ARR_SZ 5000
+#define ARR_SZ 50
 
 int main()
 {
-    /*Queue mq;
-    assert( queue_create(&mq) == 1);
+    Stack ms;
+    assert( stack_create(&ms) == 1);
 
-    assert( mq.size == 0 && mq.count == 0);
+    assert( ms.size == 0 && ms.pos == 0);
 
-    assert( queue_tune(&mq, 2, 2) == 1);
+    assert( stack_tune(&ms, 2, 2) == 1);
 
-    assert( mq.size == 2 && mq.increment == 2);
+    assert( ms.size == 2 && ms.inc == 2);
 
     char *a = "Test";
-    assert( queue_enqueue(&mq, (void*)a) == 1);
+    assert( stack_push(&ms, (void*)a) == 1);
 
-    assert( queue_size(&mq) == 1);
+    assert( stack_size(&ms) == 1);
 
-    assert( queue_peek(&mq) == a);
+    assert( stack_peek(&ms) == a);
 
-    assert( queue_dequeue(&mq) == a && queue_size(&mq) == 0);
+    assert( stack_pop(&ms) == a && stack_size(&ms) == 0);
     size_t arr[ARR_SZ] = {0};
     for(size_t i = 0; i < ARR_SZ; i++){
         arr[i] = i;
-        assert( queue_enqueue(&mq, (void*)&arr[i]) == 1);
+        assert( stack_push(&ms, (void*)&arr[i]) == 1);
     }
 
     void *t;
-    while((t = queue_dequeue(&mq)) != NULL){
+    while((t = stack_pop(&ms)) != NULL){
         size_t i = *(size_t*)t;
         printf("%d\n", i);
     }
-*/
     return 0;
 }

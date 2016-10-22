@@ -18,13 +18,13 @@ typedef struct tStack {
 
 
 /* Создать пустой стек */
-void stack_create(Stack *pstack);
+int stack_create(Stack *pstack);
 
 /* Уничтожить стек, освободив выделенную память */
 void stack_destroy(Stack *pstack);
 
 /* Поместить значение value на вершину стека */
-void stack_push(Stack *pstack, Pointer value);
+int stack_push(Stack *pstack, Pointer value);
 
 /* Возвращает количество элементов в стеке (0, если стек пуст) */
 size_t stack_size(Stack *pstack);
@@ -45,7 +45,7 @@ Pointer stack_peek(Stack *pstack);
  * increment: на сколько элементов расширять стек при последующих
  *            выделениях памяти
  */
-void stack_tune(Stack *pstack, size_t initial_size, size_t increment);
+int stack_tune(Stack *pstack, size_t initial_size, size_t increment);
 
 
 #endif
