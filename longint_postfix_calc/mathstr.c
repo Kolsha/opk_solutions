@@ -251,8 +251,8 @@ static StrNumber* nsadd_raw(StrNumber *a, StrNumber *b){
     carry++;
     if(carry < res->count)
     {
-        printf(">>> n:     %p\n", res->n);
-        printf(">>> carry: %d\n", carry);
+        //printf(">>> n:     %p\n", res->n);
+        //printf(">>> carry: %d\n", carry);
         free(&res->n[carry]);
     }
     res->count = carry;
@@ -530,7 +530,7 @@ static StrNumber* nsdiv_raw(StrNumber *a, StrNumber *b){
 
 
 
-const char* nsadd(const char *a, const char *b){
+char* nsadd(const char *a, const char *b){
     StrNumber *an = readnumber(a);
     StrNumber *bn = readnumber(b);
     if(an == NULL || bn == NULL){
@@ -549,7 +549,7 @@ const char* nsadd(const char *a, const char *b){
     return str;
 }
 
-const char* nssub(const char *a, const char *b){
+char* nssub(const char *a, const char *b){
     StrNumber *an = readnumber(a);
     StrNumber *bn = readnumber(b);
     if(an == NULL || bn == NULL){
@@ -569,7 +569,7 @@ const char* nssub(const char *a, const char *b){
     return str;
 }
 
-const char* nsmul(const char *a, const char *b){
+char* nsmul(const char *a, const char *b){
     StrNumber *an = readnumber(a);
     StrNumber *bn = readnumber(b);
     if(an == NULL || bn == NULL){
@@ -588,7 +588,7 @@ const char* nsmul(const char *a, const char *b){
     return str;
 }
 
-const char* nsdiv(const char *a, const char *b){
+char* nsdiv(const char *a, const char *b){
     StrNumber *an = readnumber(a);
     StrNumber *bn = readnumber(b);
     if(an == NULL || bn == NULL){
@@ -608,7 +608,7 @@ const char* nsdiv(const char *a, const char *b){
     return str;
 }
 
-const char* nsmod(const char *a, const char *b){
+char* nsmod(const char *a, const char *b){
     StrNumber *an = readnumber(a);
     StrNumber *bn = readnumber(b);
     if(an == NULL || bn == NULL){

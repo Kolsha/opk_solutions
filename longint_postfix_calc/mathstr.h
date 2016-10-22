@@ -3,11 +3,11 @@
 
 #include <stdio.h>
 
-const char* nsadd(const char*, const char*);
-const char* nssub(const char*, const char*);
-const char* nsmul(const char*, const char*);
-const char* nsdiv(const char*, const char*);
-const char* nsmod(const char*, const char*);
+char* nsadd(const char*, const char*);
+char* nssub(const char*, const char*);
+char* nsmul(const char*, const char*);
+char* nsdiv(const char*, const char*);
+char* nsmod(const char*, const char*);
 
 
 
