@@ -152,7 +152,7 @@ Pointer queue_dequeue(Queue *pqueue){
         size_t from = min(pqueue->end, pqueue->start);
         size_t to= max(pqueue->end, pqueue->start);
 
-        for(size_t i = 0; i < to; i++){
+        for(size_t i = 0; i < (to - from); i++){
             elms[i] = pqueue->elements[i + from];
         }
         pqueue->start -= from;
