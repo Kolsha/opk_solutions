@@ -1,5 +1,11 @@
 #include "roman_numsys.h"
 
+/*
+ * Max : MMMDCCCLXXXVIII - 3888
+ */
+
+#define max_sz 15
+
 static int get_value_by_roman(char c){
     switch (c) {
     case 'I':
@@ -54,17 +60,13 @@ int roman_to_decimal(char *str_roman)
     }
     return res;
 }
-int decimal_to_roman(int number, char *string, int maxlen)
-{
-    /*
-     * Max : MMMDCCCLXXXVIII
-     */
-    if(number < 0 || number > 4000
-            || maxlen < 1 || string ==NULL){
-        return 0;
-    }
-    string[maxlen - 1] = '\0';
 
+char *sdecimal_to_roman(int number){
+
+    if(number < 0 || number > 4000){
+        return NULL;
+    }
+    char str[max_sz + 1] = {0};
     int  decimalValue[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
     char *romanNumeral[] = { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
     size_t pos = 0;
@@ -74,17 +76,51 @@ int decimal_to_roman(int number, char *string, int maxlen)
             size_t rpos = 0;
             char *r = romanNumeral[i];
             while(r[rpos] != 0){
-                string[pos++] = r[rpos];
+                str[pos++] = r[rpos];
                 rpos++;
-                if((pos + 2) == (unsigned)maxlen){
-                    return 1;
+                if((pos + 1) == max_sz){
+                    break;
                 }
             }
-            //romanized += romanNumeral[index];
             number -= decimalValue[i];
+        }
+    }
+    char *res = malloc(pos * sizeof(char));
+    if(res == NULL){
+        return NULL;
+    }
+
+    for(size_t i = 0; i < pos + 1; i++){
+        res[i] = str[i];
+    }
+
+    return res;
+
+}
+
+int decimal_to_roman(int number, char *string, int maxlen)
+{
+
+    if(number < 0 || number > 4000
+            || maxlen < 1 || string ==NULL){
+        return 0;
+    }
+    string[maxlen - 1] = '\0';
+    char *res = sdecimal_to_roman(number);
+    if(res == NULL){
+        return 0;
+    }
+    size_t pos = 0;
+
+    while (res[pos] != 0){
+        string[pos] = res[pos];
+        pos++;
+        if((pos + 2) == maxlen){
+            return 1;
         }
     }
     string[pos] = '\0';
 
     return 1;
 }
+

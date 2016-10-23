@@ -7,11 +7,6 @@
 
 int roman_to_decimal(char *str_roman);
 int decimal_to_roman(int number, char *string, int maxlen);
-
-
-
-
-
-
+char *sdecimal_to_roman(int number);
 
 #endif
