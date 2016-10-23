@@ -57,13 +57,14 @@ int stack_push(Stack *pstack, Pointer value){
 
     if(pstack->pos >= pstack->size){
         size_t new_size = (pstack->size * pstack->inc);
-        Pointer* elms = (Pointer*) realloc(pstack->elements, new_size * sizeof(Pointer));
+        Pointer *elms = (Pointer*) realloc(pstack->elements, new_size * sizeof(Pointer));
 
         if(elms == NULL){
             return 0;
         }
 
         pstack->elements = elms;
+        pstack->size = new_size;
     }
     pstack->pos++;
     pstack->elements[pstack->pos - 1] = value;

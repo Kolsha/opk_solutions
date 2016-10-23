@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "mystack.h"
 
-#define ARR_SZ 50
+#define ARR_SZ 5000
 
 int main()
 {
