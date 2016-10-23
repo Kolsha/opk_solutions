@@ -3,7 +3,7 @@
 #include <string.h>
 #include "dslist.h"
 
-#define arr_sz 5
+#define arr_sz 500
 
 char *print_test = "Test it";
 int find_it(Pointer a, Pointer b){
