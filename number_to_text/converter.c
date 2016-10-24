@@ -85,16 +85,16 @@ static char *strconcat(char *s1, char *s2){
     return res;
 }
 
-char *dig2str (unsigned long long p_summa, int p_sex, char *p_one, char *p_four, char *p_many)
+char *dig2str (unsigned long long sum, int sex, char *one, char *four, char *many)
 {
-    if(p_summa == 0UL){
-        return strconcat("ноль ", p_many);
+    if(sum == 0UL){
+        return strconcat("ноль ", many);
     }
 
-    a_power[0].sex  = p_sex;
-    a_power[0].one  = p_one;
-    a_power[0].four = p_four;
-    a_power[0].many = p_many;
+    a_power[0].sex  = sex;
+    a_power[0].one  = one;
+    a_power[0].four = four;
+    a_power[0].many = many;
 
     char *res = malloc(1);
     char *tmp = NULL;
@@ -103,16 +103,17 @@ char *dig2str (unsigned long long p_summa, int p_sex, char *p_one, char *p_four,
     }
     res[0] = '\0';
 
-    if(p_summa <  0UL) {
+    /*if(sum <  0UL) {
         tmp = strconcat(res , "минус ");
         free(res);
         if(tmp == NULL){
             return NULL;
         }
         res = tmp;
-        p_summa *= -1;
+        sum *= -1;
 
-    }
+    }*/
+
     unsigned long long  divisor = 1;
     for(size_t i = 0; i < DG_POWER; i++)
     {
@@ -121,8 +122,8 @@ char *dig2str (unsigned long long p_summa, int p_sex, char *p_one, char *p_four,
 
     for(int i = DG_POWER - 1; i >= 0; i--){
         divisor /= 1000;
-        int mny = (int)(p_summa / divisor);
-        p_summa %= divisor;
+        int rest = (int)(sum / divisor);
+        sum %= divisor;
 
         char *str = malloc(1);
         if(str == NULL){
@@ -130,7 +131,7 @@ char *dig2str (unsigned long long p_summa, int p_sex, char *p_one, char *p_four,
         }
         str[0] = '\0';
 
-        if(mny == 0){
+        if(rest == 0){
             if(i > 0)
             {
                 continue;
@@ -143,36 +144,36 @@ char *dig2str (unsigned long long p_summa, int p_sex, char *p_one, char *p_four,
             }
             str = tmp;
         }else {
-            if(mny >= 100){
-                tmp = strconcat(str, digit[mny / 100].hun);
+            if(rest >= 100){
+                tmp = strconcat(str, digit[rest / 100].hun);
                 free(str);
                 if(tmp == NULL){
                     free(res);
                     return NULL;
                 }
                 str = tmp;
-                mny %=100;
+                rest %=100;
             }
-            if(mny >= 20 ){
-                tmp = strconcat(str, digit[mny / 10].dec);
+            if(rest >= 20 ){
+                tmp = strconcat(str, digit[rest / 10].dec);
                 free(str);
                 if(tmp == NULL){
                     free(res);
                     return NULL;
                 }
                 str = tmp;
-                mny %=10;
+                rest %=10;
             }
-            if(mny >= 10 ){
-                tmp = strconcat(str, digit[mny - 10].two);
+            if(rest >= 10 ){
+                tmp = strconcat(str, digit[rest - 10].two);
                 free(str);
                 if(tmp == NULL){
                     free(res);
                     return NULL;
                 }
                 str = tmp;
-            }else if(mny >= 1  ){
-                tmp = strconcat(str, digit[mny].one[a_power[i].sex]);
+            }else if(rest >= 1  ){
+                tmp = strconcat(str, digit[rest].one[a_power[i].sex]);
                 free(str);
                 if(tmp == NULL){
                     free(res);
@@ -180,7 +181,7 @@ char *dig2str (unsigned long long p_summa, int p_sex, char *p_one, char *p_four,
                 }
                 str = tmp;
             }
-            switch(mny){
+            switch(rest){
             case 1:
                 tmp = strconcat(str, a_power[i].one);
                 free(str);
