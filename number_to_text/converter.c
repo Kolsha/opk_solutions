@@ -121,6 +121,7 @@ char *dig2str (unsigned long long sum, int sex, char *one, char *four, char *man
     }
 
     for(int i = DG_POWER - 1; i >= 0; i--){
+
         divisor /= 1000;
         int rest = (int)(sum / divisor);
         sum %= divisor;

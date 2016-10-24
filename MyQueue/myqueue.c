@@ -141,7 +141,7 @@ Pointer queue_dequeue(Queue *pqueue){
 
     if(pqueue->count > 0){
         size_t size_to_count = pqueue->size / pqueue->count;
-        if(size_to_count < 3){
+        if(size_to_count <= 2){
             return tmp;
         }
         size_t  new_size = (size_to_count - 1) * pqueue->count;

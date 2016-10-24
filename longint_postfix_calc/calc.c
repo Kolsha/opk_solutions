@@ -82,12 +82,12 @@ char *GetTextFrom(FILE *input){
 }
 
 static int ismath(char c){
-    if(c == '+' || c == '-' || c == ' '
-            || c == '*' || c == '/'){
+    if(c == '+' || c == '-' || c == '*' || c == '/'){
         return c;
     }
     return 0;
 }
+
 static char *copystr(const char *str, size_t count){
 
     if(str == NULL || count < 1){
@@ -115,87 +115,97 @@ static void destroy_stack(Stack *st){
     stack_destroy(st);
 }
 
+char *getnumb(const char *str, size_t *offset){
+    if(str == NULL){
+        return NULL;
+    }
+    size_t pos = *offset;
+    while(isdigit(str[pos])){
+        pos++;
+    }
+    char *res = copystr(&str[*offset], pos - (*offset));
+    if(res == NULL){
+        return NULL;
+    }
+    *offset = pos - 1;
+    return res;
+}
+
 char *postfix_calc(char *exp){
 
     if(exp == NULL){
         return nsadd(NULL, NULL);
     }
 
-    char math = 0;
-    size_t i = 0;
-    size_t pos = 0;
     Stack eStack;
-
     assert(stack_create(&eStack) == 1);
     assert(stack_tune(&eStack, 3, 3) == 1);
+
     char cur = 0, prev = 0;
-    while(exp[i] != 0){
+    size_t i = 0;
+
+    while((cur = exp[i]) != 0){
 
         cur = exp[i];
-        if(cur == ' ' && prev ==' '){
+        if(isspace(cur) && isspace(prev)){
             i++;
-            pos = i;
             continue;
         }
-        math = ismath(exp[i]);
 
-
-        if(!(math || isdigit(exp[i]))){
+        char math = ismath(cur);
+        if(!(math || isdigit(cur) || isspace(cur))){
             destroy_stack(&eStack);
             return NULL;
         }
-        char *number;
 
-        if(math && pos < i){
-            number = copystr(&exp[pos], (i - pos));
-            if(ismath(exp[pos]) && ismath(exp[i]) && exp[i] != ' '){
-                free(number);
-                pos = i;
-                continue;
+        if(isdigit(cur)){
+            char *number = getnumb(exp, &i);
+            if(number == NULL ){
+                destroy_stack(&eStack);
+                return NULL;
             }
-            if(number == NULL){
-                return nsadd(NULL, NULL);
-            }
-            assert(stack_push(&eStack, (Pointer)number) == 1);
-
-            pos = i + 1;
+            assert(stack_push(&eStack, number) == 1);
         }
-        if(math && stack_size(&eStack) > 1 && math != ' '){
 
-            char *number1 = stack_pop(&eStack);
-            number = stack_pop(&eStack);
+        if(math && stack_size(&eStack) > 1){
 
-            if(number == NULL || number == NULL){
+            char *number1 = (char*) stack_pop(&eStack);
+            char *number2 = (char*) stack_pop(&eStack);
+
+            if(number1 == NULL || number2 == NULL){
                 stack_destroy(&eStack);
                 return NULL;
             }
-            char *tmp;
+
+            char *tmp = NULL;
             switch (math) {
             case '+':
-                tmp = nsadd(number, number1);
+                tmp = nsadd(number2, number1);
                 break;
             case '-':
-                tmp = nssub(number, number1);
+                tmp = nssub(number2, number1);
                 break;
             case '*':
-                tmp = nsmul(number, number1);
+                tmp = nsmul(number2, number1);
                 break;
             case '/':
-                tmp = nsdiv(number, number1);
+                tmp = nsdiv(number2, number1);
                 break;
             }
-            free(number);
+            free(number2);
             free(number1);
             if(tmp == NULL){
                 stack_destroy(&eStack);
                 return NULL;
             }
-            assert(stack_push(&eStack, (Pointer)tmp) == 1);
-            pos = i + 1;
+            assert(stack_push(&eStack, tmp) == 1);
 
+        }else if(math){
+            destroy_stack(&eStack);
+            return NULL;
         }
+        prev = exp[i];
         i++;
-        prev = cur;
     }
 
 
@@ -204,9 +214,8 @@ char *postfix_calc(char *exp){
         tmp = stack_pop(&eStack);
         stack_destroy(&eStack);
         return tmp;
-    }else if(stack_size(&eStack) > 1){
+    }else{
         destroy_stack(&eStack);
     }
     return NULL;
-
 }

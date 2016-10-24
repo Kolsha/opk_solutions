@@ -13,12 +13,15 @@ int main()
     assert(strcmp(res, "MMMDCCCLXXXVIII") == 0);
     free(res);
 
+    res = sdecimal_to_roman(9);
     assert(roman_to_decimal("ix") == 9);
-    assert(strcmp(sdecimal_to_roman(9), "IX") == 0);
+    assert(strcmp(res, "IX") == 0);
+    free(res);
 
     char buf[buf_sz];
     assert(decimal_to_roman(3888, buf, buf_sz) == 1);
     assert(strcmp(buf, "MMMDCCCLXXXVIII") == 0);
+
 
     return 0;
 }

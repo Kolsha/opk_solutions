@@ -8,10 +8,10 @@ typedef void *Pointer;
 
 typedef struct tStack {
 
-   Pointer *elements;
-   size_t inc;
-   size_t size;
-   size_t pos;
+    Pointer *elements;
+    size_t inc;
+    size_t size;
+    size_t pos;
 
 } Stack;
 
@@ -33,13 +33,13 @@ size_t stack_size(Stack *pstack);
 Pointer stack_pop(Stack *pstack);
 
 /*
- * Возвращает значение с вершины стека, не удаляя его из стека. 
- * Если стек пуст, возвращает 0 
+ * Возвращает значение с вершины стека, не удаляя его из стека.
+ * Если стек пуст, возвращает 0
  */
 Pointer stack_peek(Stack *pstack);
 
 /* 
- * Настраивает параметры стека. 
+ * Настраивает параметры стека.
  * initial_size: начальный размер стека, при первом выделении памяти
  *               (по умолч.: 50)
  * increment: на сколько элементов расширять стек при последующих

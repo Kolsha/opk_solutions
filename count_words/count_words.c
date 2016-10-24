@@ -1,5 +1,10 @@
 #include "count_words.h"
 
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
+#include <ctype.h>
+
 char *GetTextFrom(FILE *input){
     size_t inc = 16;
     size_t str_len = 0;
@@ -76,7 +81,6 @@ static int IsAlphabetic(char c){
     if(c == 241||c == 240) return 1; // ||c==34
     if(c >= 128 && c <= 175) return 1;
     if(c >= 224 && c <= 239) return 1;
-    if(c >= 48 && c <= 57) return 1;
     if(isalnum(c)) return 1;
     return 0;
 }
@@ -102,12 +106,8 @@ CounterResult *getstat(char *str){
 
     int prev_space = 1;
 
-    while(str[res->symbols] != '\0')
+    while((c = str[res->symbols++]) != '\0')
     {
-
-        c = str[res->symbols];
-        res->symbols++;
-
         if(c == '\n'){
             res->lines++;
         }
@@ -122,25 +122,14 @@ CounterResult *getstat(char *str){
                 continue;
             }
             res->words++;
-
         }
 
-        switch(c){
-        case '.':
-        case '?':
-        case '!':
-        case ',':
-        case ':':
-        case ';':
-        case '-':
+        if(ispunct(c)){
             res->punctuation++;
-            break;
-        default:
-            break;
         }
 
         p = c;
-        prev_space = isspace(c) > 0;
+        prev_space = isspace(c);
     }
     if(IsAlphabetic(p)){
         res->words++;

@@ -69,5 +69,9 @@ int main(){
 
     printf("All tests passed!");
 
+    dslist_free(list);
+    //dslist_free(cloned);
+    //dslist_free(arrlst);
+   // free(arr0);
     return 0;
 }

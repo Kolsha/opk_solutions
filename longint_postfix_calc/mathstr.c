@@ -154,13 +154,16 @@ static char* makenumber(StrNumber *numb){
     if(numb->sign < 0){
         c++;
     }
-    char *res = malloc(c);
+    char *res = malloc(c * sizeof(char));
     if(res == NULL){
         return NULL;
     }
     res[c - 1] = 0;
 
     for(int i = 0; i < c; i++){
+        if((c - i - 2) < 0){
+            break;
+        }
         res[c - i - 2] = (char)(numb->n[i] + '0');
         if(!isdigit(res[c - i - 2])){
             res[c - i - 2] = '?';
