@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
+
 #include "dslist.h"
 
 #define arr_sz 500
@@ -19,7 +21,6 @@ void print_arr(Pointer data, Pointer user_data){
 
 int main(){
 
-    int i = 7777777;
     int arr[arr_sz] = {99, 56, 78, 99, 321};
     char *s = "Test";
 
@@ -33,9 +34,9 @@ int main(){
 
     assert( list->last->data == s );
 
-    assert( dslist_append(list, (Pointer) i) == list);
+    assert( dslist_append(list, (Pointer) arr[0]) == list);
 
-    assert( dslist_last(list)->data == (Pointer) i);
+    assert( dslist_last(list)->data == (Pointer) arr[0]);
 
     assert( dslist_length(list) == 2);
 
@@ -57,7 +58,7 @@ int main(){
 
     assert( dslist_length(arrlst) == arr_sz );
 
-    DLList *arrend = dslist_find(arrlst, (Pointer)arr[arr_sz - 1]);
+    DLNode *arrend = dslist_find(arrlst, (Pointer)arr[arr_sz - 1]);
 
     assert( arrend != NULL );
 
@@ -70,8 +71,8 @@ int main(){
     printf("All tests passed!");
 
     dslist_free(list);
-    //dslist_free(cloned);
-    //dslist_free(arrlst);
-   // free(arr0);
+    dslist_free(cloned);
+    dslist_free(arrlst);
+
     return 0;
 }

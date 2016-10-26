@@ -59,6 +59,7 @@ DLNode* dslist_last(DLList *list){
 }
 
 DLList *dslist_append(DLList *list, Pointer data){
+
     DLNode *nn = empty_node();
     if(nn == NULL){
         return NULL;
@@ -215,7 +216,7 @@ void dslist_free(DLList *list){
     while(tmp->next != NULL){
         tmp2 = tmp;
         tmp = tmp->next;
-        dslist_remove_raw(tmp2, 1);
+        dslist_remove_raw(tmp2, 0);
     }
     free(list);
 }
@@ -322,6 +323,7 @@ DLList *dslist_copy(DLList *list){
 
     DLList* nl = empty_list(NULL);
     if(nl == NULL){
+        free(nl);
         return NULL;
     }
     dslist_foreach(list, foreach_for_copy, nl);
