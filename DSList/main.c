@@ -5,9 +5,10 @@
 
 #include "dslist.h"
 
-#define arr_sz 500
+#define arr_sz 50
 
 char *print_test = "Test it";
+
 int find_it(Pointer a, Pointer b){
     if(a == b){
         return 0;
@@ -51,22 +52,20 @@ int main(){
     assert( cloned != NULL && dslist_length(cloned) == 3);
 
     DLList *arrlst = dslist_prepend(NULL, (Pointer)arr[0]);
+    dslist_remove(arrlst, (Pointer)arr[0]);
+
     for(int i = 1; i < arr_sz; i++){
         dslist_prepend(arrlst, (Pointer)arr[i]);
     }
     dslist_foreach(arrlst, print_arr, print_test);
 
-    assert( dslist_length(arrlst) == arr_sz );
+    assert( dslist_length(arrlst) == (arr_sz - 1) );
 
     DLNode *arrend = dslist_find(arrlst, (Pointer)arr[arr_sz - 1]);
 
     assert( arrend != NULL );
 
     assert( dslist_position(arrlst, arrend) == 0 );
-
-    DLNode *arr0 = dslist_find_custom(arrlst, (Pointer)arr[0], find_it);
-
-    assert(arrlst->last->data == arr0->data);
 
     printf("All tests passed!");
 

@@ -171,7 +171,7 @@ static DLList *dslist_remove_few(DLList *list, Pointer data, int count){
             if(list->last == runner){
                 list->last = runner->prev;
             }
-            dslist_remove_raw(runner, 1);
+            dslist_remove_raw(runner, 0);
             list->count--;
             pos++;
             if((pos >= count && count > 0) || list->count < 1)
@@ -218,6 +218,7 @@ void dslist_free(DLList *list){
         tmp = tmp->next;
         dslist_remove_raw(tmp2, 0);
     }
+    free(tmp); // free last el
     free(list);
 }
 
