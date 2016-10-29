@@ -44,4 +44,8 @@ void avl_foreach(AVLTree *tree,
                  void (*foreach_func)(Pointer data, Pointer extra_data),
                  Pointer extra_data);
 
+
+
+void print_tree(AVLTreeNode *node);
+
 #endif

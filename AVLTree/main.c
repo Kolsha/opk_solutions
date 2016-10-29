@@ -69,7 +69,7 @@ int main()
     assert(tree != NULL);
     assert(avl_size(tree) == 0);
 
-    size_t sz = 150;
+    size_t sz = 10;
     int *arr = rand_arr(&sz);
     assert(arr != NULL);
 
@@ -78,12 +78,13 @@ int main()
     }
 
     for(size_t i = 0; i < sz; i++){
-        assert(avl_find(tree, &arr[i]) == &arr[i]);
+        assert(cmp_int(avl_find(tree, &arr[i]), &arr[i]) == 0);
     }
     avl_foreach(tree, foreach_func, for_foreach);
 
 
     printf("\nAll test passed!");
+    print_tree(tree->root);
     free(arr);
     avl_destroy(tree);
 

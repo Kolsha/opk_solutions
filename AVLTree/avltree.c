@@ -1,8 +1,12 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "avltree.h"
 
+#define MAX_TREE_HEIGHT 50
 static void balance_tree(AVLTree *tree){
+
     if(tree == NULL){
         return ;
     }
@@ -48,7 +52,40 @@ size_t avl_size(AVLTree *tree){
     return tree->size;
 }
 
+static AVLTreeNode *avl_find_raw(AVLTree *tree, Pointer data){
+
+    if(tree == NULL || tree->size == 0 || tree->root == NULL){
+        return NULL;
+    }
+
+    AVLTreeNode *runner = tree->root;
+
+    for(;;){
+
+        int cmp = tree->cmp_func(runner->data, data);
+
+        if(cmp == 0){
+            return runner;
+        }
+
+        if(cmp > 0){
+            if(runner->left == NULL){
+                return runner;
+            }
+            runner = runner->left;
+
+        }else{
+            if(runner->right == NULL){
+                return runner;
+            }
+            runner = runner->right;
+        }
+    }
+    return NULL;
+}
+
 Pointer avl_insert(AVLTree *tree, Pointer data){
+
     if(tree == NULL){
         return NULL;
     }
@@ -62,69 +99,41 @@ Pointer avl_insert(AVLTree *tree, Pointer data){
         tree->root = node;
         return data;
     }
-    AVLTreeNode *runner = tree->root;
+    AVLTreeNode *runner = avl_find_raw(tree, data);
+    if(runner == NULL){
+        tree->size--;
+        free(node);
+        return NULL;
+    }
 
-    for(;;){
-        int cmp = tree->cmp_func(runner->data, data);
-        if(cmp == 0){
-            free(node);
-            return data;
-        }
-        if(cmp > 0){
-            if(runner->left == NULL){
-                runner->balance++;
-                runner->left = node;
-                node->parent = runner;
-                break;
-            }
-            runner = runner->left;
-
-        }else{
-            if(runner->right == NULL){
-                runner->balance--;
-                runner->right = node;
-                node->parent = runner;
-                break;
-            }
-            runner = runner->right;
-        }
+    int cmp = tree->cmp_func(runner->data, data);
+    if(cmp == 0){
+        free(node);
+        return data;
+    }
+    if(cmp > 0 && runner->left == NULL){
+        runner->balance++;
+        runner->left = node;
+        node->parent = runner;
+    }else if(cmp < 0 && runner->right == NULL){
+        runner->balance--;
+        runner->right = node;
+        node->parent = runner;
+    } else {
+        return NULL;
     }
 
     balance_tree(tree);
     return data;
-
 }
 
 Pointer avl_find(AVLTree *tree, Pointer data){
 
-    if(tree == NULL || tree->size == 0){
+    AVLTreeNode *node = avl_find_raw(tree, data);
+    if(node == NULL || tree->cmp_func(node->data, data) != 0){
         return NULL;
     }
-
-    AVLTreeNode *runner = tree->root;
-
-    for(;;){
-
-        int cmp = tree->cmp_func(runner->data, data);
-
-        if(cmp == 0){
-            return data;
-        }
-
-        if(cmp > 0){
-            if(runner->left == NULL){
-                return NULL;
-            }
-            runner = runner->left;
-
-        }else{
-            if(runner->right == NULL){
-                return NULL;
-            }
-            runner = runner->right;
-        }
-    }
-    return NULL;
+    return node->data;
 }
 
 static void avl_foreach_raw(AVLTreeNode *node,
@@ -168,3 +177,97 @@ void avl_destroy(AVLTree *tree){
     avl_free_node(tree->root);
     free(tree);
 }
+
+static AVLTreeNode *avl_leftmost(AVLTreeNode *node){
+    if(node == NULL){
+        return NULL;
+    }
+    AVLTreeNode *runner = node;
+    while(runner->left != NULL){
+        runner = runner->left;
+    }
+    return runner;
+}
+
+static AVLTreeNode *avl_rightmost(AVLTreeNode *node){
+    if(node == NULL){
+        return NULL;
+    }
+    AVLTreeNode *runner = node;
+    while(runner->right != NULL){
+        runner = runner->right;
+    }
+    return runner;
+}
+
+static void avl_inform_parent(AVLTreeNode *node, AVLTreeNode *new_node){
+    if(node == NULL || node->parent == NULL){
+        return ;
+    }
+    AVLTreeNode *parent = node->parent;
+    if(parent->left == node){
+        parent->left = new_node;
+    }else {
+        parent->right = new_node;
+    }
+}
+
+Pointer avl_delete(AVLTree *tree, Pointer data){
+
+    AVLTreeNode *node = avl_find_raw(tree, data);
+    if(node == NULL || tree->cmp_func(node->data, data) != 0){
+        return NULL;
+    }
+
+
+    if(node->left == NULL && node->right == NULL){
+        avl_inform_parent(node, NULL);
+        free(node);
+        if(tree->root == node){
+            tree->root = NULL;
+        }
+        return data;
+    }
+
+
+    AVLTreeNode *replace = avl_leftmost(node->right);
+    if(replace == NULL){
+        replace = avl_rightmost(node->left);
+    }
+    if(replace == NULL){
+        return NULL;
+    }
+
+    tree->size--;
+
+    avl_inform_parent(node, replace);
+    avl_inform_parent(replace, NULL);
+
+    replace->left = node->left;
+    replace->right = node->right;
+
+    if(tree->root == node){
+        tree->root = replace;
+    }
+
+    free(node);
+    balance_tree(tree);
+    return data;
+}
+
+void print_tree(AVLTreeNode *node){
+    if(node == NULL){
+        return ;
+    }
+    int tmp = *(int*)node->data;
+    printf("{ %d }\n", tmp);
+
+
+}
+
+
+
+
+
+
+
