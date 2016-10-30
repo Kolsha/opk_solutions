@@ -8,7 +8,7 @@ typedef int (*CmpFunc)(Pointer data1, Pointer data2);
 
 typedef struct tAVLTreeNode {
     Pointer data;
-    int balance;
+    int height;
     struct tAVLTreeNode *parent;
     struct tAVLTreeNode *left , *right;
 } AVLTreeNode;
@@ -44,8 +44,9 @@ void avl_foreach(AVLTree *tree,
                  void (*foreach_func)(Pointer data, Pointer extra_data),
                  Pointer extra_data);
 
+int avl_check(AVLTree *tree);
 
 
-void print_tree(AVLTreeNode *node);
+void print_tree(AVLTreeNode *node, int level);
 
 #endif

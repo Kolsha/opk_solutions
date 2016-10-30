@@ -70,11 +70,15 @@ int main()
     assert(avl_size(tree) == 0);
 
     size_t sz = 10;
-    int *arr = rand_arr(&sz);
+    /*int *arr = rand_arr(&sz);
     assert(arr != NULL);
+    */
+    int arr[] = {1, 2, 3, 4, 5, 0, 7, 6,};//
+    sz = sizeof(arr) / sizeof(arr[0]);
 
     for(size_t i = 0; i < sz; i++){
         assert(avl_insert(tree, &arr[i]) == &arr[i]);
+        assert(avl_check(tree) == 1);
     }
 
     for(size_t i = 0; i < sz; i++){
@@ -83,10 +87,20 @@ int main()
     avl_foreach(tree, foreach_func, for_foreach);
 
 
+    printf("\nRoot:");
+    print_tree(tree->root, 0);
+
+    avl_delete(tree, &arr[0]);
+    assert(avl_check(tree) == 1);
+
+    printf("\nEnd Root:");
+    print_tree(tree->root, 0);
+
     printf("\nAll test passed!");
-    print_tree(tree->root);
-    free(arr);
-    avl_destroy(tree);
+
+
+    //free(arr);
+    //avl_destroy(tree);
 
     return 0;
 }
