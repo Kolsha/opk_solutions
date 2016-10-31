@@ -1,13 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <assert.h>
 
 #include "avltree.h"
 
-#define MAX_TREE_HEIGHT 50
-
 static void avl_inform_parent(AVLTreeNode *node, AVLTreeNode *new_node){
+
     if(node == NULL || node->parent == NULL){
         return ;
     }
@@ -21,6 +19,7 @@ static void avl_inform_parent(AVLTreeNode *node, AVLTreeNode *new_node){
 }
 
 static AVLTreeNode *avl_leftmost(AVLTreeNode *node){
+
     if(node == NULL){
         return NULL;
     }
@@ -32,6 +31,7 @@ static AVLTreeNode *avl_leftmost(AVLTreeNode *node){
 }
 
 static AVLTreeNode *avl_rightmost(AVLTreeNode *node){
+
     if(node == NULL){
         return NULL;
     }
@@ -47,16 +47,15 @@ static int height(AVLTreeNode *node){
 }
 
 static int balance(AVLTreeNode *node){
+
     if(node == NULL){
         return 0;
     }
-    //int hl = height(node->left);
-    //int hr = height(node->right);
     return height(node->left) - height(node->right);
 }
 
-static void fixheight(AVLTreeNode* node)
-{
+static void fixheight(AVLTreeNode* node){
+
     if(node == NULL){
         return ;
     }
@@ -172,7 +171,6 @@ static AVLTreeNode *empty_node(Pointer data){
         return NULL;
     }
     res->data = data;
-    //res->balance = 0;
     res->parent = NULL;
     res->left = NULL;
     res->right = NULL;
@@ -240,11 +238,11 @@ static AVLTreeNode *avl_find_raw(AVLTree *tree, Pointer data){
 
 Pointer avl_insert(AVLTree *tree, Pointer data){
 
-    int tmp = *(int*)data;
     if(tree == NULL){
         return NULL;
     }
     AVLTreeNode *node = empty_node(data);
+
     if(node == NULL){
         return NULL;
     }
@@ -263,20 +261,19 @@ Pointer avl_insert(AVLTree *tree, Pointer data){
 
     int cmp = tree->cmp_func(runner->data, data);
     if(cmp == 0){
+        Pointer tmp = runner->data;
+        runner->data = data;
         free(node);
-        return data;
+        return tmp;
     }
-    if(cmp > 0 && runner->left == NULL){
+    if(cmp > 0){
         runner->left = node;
         node->parent = runner;
-    }else if(cmp < 0 && runner->right == NULL){
+    }else if(cmp < 0){
         runner->right = node;
         node->parent = runner;
-    } else {
-        return NULL;
     }
-    printf("\nRoot:");
-    print_tree(tree->root, 0);
+
     balance_tree(tree, node);
     return data;
 }
@@ -291,19 +288,22 @@ Pointer avl_find(AVLTree *tree, Pointer data){
 }
 
 static void avl_foreach_raw(AVLTreeNode *node,
-                            void (*foreach_func)(Pointer data, Pointer extra_data),
+                            ForeachFunc foreach_func,
                             Pointer extra_data){
+
     if(node == NULL || foreach_func == NULL){
         return ;
     }
-    foreach_func(node->data, extra_data);
+    if(!foreach_func(node->data, extra_data)){
+        return ;
+    }
     avl_foreach_raw(node->left, foreach_func, extra_data);
     avl_foreach_raw(node->right, foreach_func, extra_data);
 
 }
 
 void avl_foreach(AVLTree *tree,
-                 void (*foreach_func)(Pointer data, Pointer extra_data),
+                 ForeachFunc foreach_func,
                  Pointer extra_data){ // from head to tail
 
     if(tree == NULL || tree->size == 0 || foreach_func == NULL){
@@ -318,9 +318,11 @@ static void avl_free_node(AVLTreeNode *node){
     if(node == NULL){
         return ;
     }
-    avl_free_node(node->left);
-    avl_free_node(node->right);
+    AVLTreeNode *left = node->left;
+    AVLTreeNode *right = node->right;
     free(node);
+    avl_free_node(left);
+    avl_free_node(right);
 }
 
 void avl_destroy(AVLTree *tree){
@@ -332,6 +334,14 @@ void avl_destroy(AVLTree *tree){
     free(tree);
 }
 
+void avl_clear(AVLTree *tree){
+    if(tree == NULL){
+        return ;
+    }
+    avl_free_node(tree->root);
+    tree->size = 0;
+}
+
 
 
 Pointer avl_delete(AVLTree *tree, Pointer data){
@@ -341,41 +351,48 @@ Pointer avl_delete(AVLTree *tree, Pointer data){
         return NULL;
     }
 
-
+    AVLTreeNode *replace = NULL;
+    Pointer tmp = node->data;
+    tree->size--;
     if(node->left == NULL && node->right == NULL){
         avl_inform_parent(node, NULL);
         balance_tree(tree, node->parent);
-        free(node);
+
         if(tree->root == node){
             tree->root = NULL;
         }
-        return data;
+        free(node);
+        return tmp;
+    }
+    if((node->left == NULL)^(node->right == NULL)){
+        replace = (node->left != NULL) ? node->left : node->right;
+        avl_inform_parent(node, replace);
+        replace->parent = node->parent;
+        balance_tree(tree, replace);
+
+        if(tree->root == node){
+            tree->root = replace;
+        }
+        free(node);
+        return tmp;
     }
 
-
-    AVLTreeNode *replace = avl_leftmost(node->right);
+    replace = avl_leftmost(node->right);
     if(replace == NULL){
         replace = avl_rightmost(node->left);
     }
     assert(replace != NULL);
-    assert(replace->left == NULL && replace->right == NULL);
-    if(replace == NULL){
-        return NULL;
-    }
-
-    tree->size--;
+    assert(replace->height == 0);
 
     avl_inform_parent(node, replace);
     avl_inform_parent(replace, NULL);
-
-
 
     replace->left = node->left;
     if(replace->left != NULL){
         replace->left->parent = replace;
     }
-    replace->right = node->right;
 
+    replace->right = node->right;
     if(replace->right != NULL){
         replace->right->parent = replace;
     }
@@ -384,35 +401,16 @@ Pointer avl_delete(AVLTree *tree, Pointer data){
         tree->root = replace;
     }
 
-
-    balance_tree(tree, replace);
     free(node);
-    return data;
-}
-
-void print_tree(AVLTreeNode *node, int level){
-
+    node = replace->left;
     if(node == NULL){
-        printf("L(%d) Empty\n", level);
-        return ;
+        node = (replace->right != NULL) ? replace->right : replace;
     }
-    int tmp = *(int*)node->data;
-    printf("H(%d) { %d }\n", level, tmp);
+    balance_tree(tree, node);
 
-    if(node->left != NULL)
-    {
-        printf("Left:");
-        print_tree(node->left, level + 1);
-    }
-    if(node->right != NULL){
-        printf("Right:");
-        print_tree(node->right, level + 1);
-    }
-
-
-
-
+    return tmp;
 }
+
 static int avl_node_check(AVLTree *tree, AVLTreeNode *node){
 
     if(node->left == NULL && node->right == NULL){
@@ -447,7 +445,9 @@ int avl_check(AVLTree *tree){
     return avl_node_check(tree, tree->root);
 }
 
-
+int avl_height(AVLTree *tree){
+    return height(tree->root);
+}
 
 
 

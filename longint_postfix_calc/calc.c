@@ -165,9 +165,13 @@ char *postfix_calc(char *exp){
                 return NULL;
             }
             assert(stack_push(&eStack, number) == 1);
-        }
 
-        if(math && stack_size(&eStack) > 1){
+        } else if(math){
+
+            if (stack_size(&eStack) < 2) {
+                destroy_stack(&eStack);
+                return NULL;
+            }
 
             char *number1 = (char*) stack_pop(&eStack);
             char *number2 = (char*) stack_pop(&eStack);
@@ -199,23 +203,14 @@ char *postfix_calc(char *exp){
                 return NULL;
             }
             assert(stack_push(&eStack, tmp) == 1);
-
-        }else if(math){
-            destroy_stack(&eStack);
-            return NULL;
         }
         prev = exp[i];
         i++;
     }
 
-
-    if(stack_size(&eStack) ==  1){
-        Pointer tmp;
-        tmp = stack_pop(&eStack);
-        stack_destroy(&eStack);
-        return tmp;
-    }else{
-        destroy_stack(&eStack);
-    }
-    return NULL;
+    Pointer result = (stack_size(&eStack) == 1)
+            ? stack_pop(&eStack)
+            : NULL;
+    stack_destroy(&eStack);
+    return result;
 }
