@@ -5,7 +5,10 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "hash_table.h"
+
 char *GetTextFrom(FILE *input){
+
     size_t inc = 16;
     size_t str_len = 0;
     size_t buf_size = inc;
@@ -85,6 +88,21 @@ static int IsAlphabetic(char c){
     return 0;
 }
 
+static char *getword(char *str, size_t *pos){
+
+    if(str == NULL){
+        return NULL;
+    }
+    char arr[50] = {0};
+    size_t i = 0;
+    size_t p = *pos - 1;
+    while(str[*pos] != 0 && isalpha(str[p])){
+        arr[i++] = tolower(str[p++]);
+    }
+    *pos = p;
+    return strdup(arr);
+}
+
 CounterResult *getstat(char *str){
 
     if(str == NULL){
@@ -95,6 +113,8 @@ CounterResult *getstat(char *str){
     if(res == NULL){
         return NULL;
     }
+    ht_init(&(res->hWords), 100, NULL, NULL);
+
     res->lines = 1;
     res->symbols = 0;
     res->words = 0;
@@ -108,6 +128,18 @@ CounterResult *getstat(char *str){
 
     while((c = str[res->symbols++]) != '\0')
     {
+        if(isalpha(c)){
+            char *word = getword(str,&(res->symbols));
+            Pointer tmp = ht_get(&(res->hWords), word);
+            size_t t = 0;
+            if(tmp != NULL){
+                t = (size_t)tmp;
+            }
+            t++;
+            assert(ht_set(&(res->hWords), word, (Pointer)t) != NULL);
+
+            continue;
+        }
         if(c == '\n'){
             res->lines++;
         }
@@ -137,6 +169,11 @@ CounterResult *getstat(char *str){
     return res;
 }
 
+static int print_words(char *key, Pointer data){
+
+    printf("%s - %d\n", key, (size_t)data);
+}
+
 void print_inf(CounterResult *res){
 
     if(res == NULL){
@@ -150,4 +187,12 @@ void print_inf(CounterResult *res){
     printf("\nPunctuation: %d", res->punctuation);
     printf("\nSymbols: %d", res->symbols);
     printf("\nNumbers: %d", res->numbers);
+    printf("\nWords stat: \n\n", res->numbers);
+
+    ht_traverse(&(res->hWords), &print_words);
+}
+
+void free_res(CounterResult *res){
+    ht_destroy(&(res->hWords));
+    free(res);
 }

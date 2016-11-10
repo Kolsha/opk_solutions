@@ -31,6 +31,6 @@ int main(int argc, char *argv[])
         return usage_inf();
     }
 
-    free(res);
+    free_res(res);
     return 0;
 }
