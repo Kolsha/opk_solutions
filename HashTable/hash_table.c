@@ -28,6 +28,7 @@ static List *find_list(List *head, char *key){
         }
         nlist = nlist->next;
     }
+    return NULL;
 }
 
 static unsigned jenkins_one_at_a_time_hash(char *key, size_t ht_size) {
@@ -107,7 +108,7 @@ Pointer ht_get(HashTable *ht, char *key){
 
     unsigned index = ht->hashfunc(key, ht->size);
     if(index >= ht->size){
-        return ;
+        return NULL;
     }
 
     List *nlist = find_list(ht->table[index], key);
