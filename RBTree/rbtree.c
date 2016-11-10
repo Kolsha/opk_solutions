@@ -2,7 +2,7 @@
 #include "rbtree.h"
 
 /***********************
-    * Static funcions  *
+    * Static functions  *
     ***********************/
 static nodeColor getColor(RBTreeNode *node){
 
@@ -271,7 +271,7 @@ static int rb_node_check(RBTree *tree, RBTreeNode *node){
 }
 
 /***********************
-    * Public funcions  *
+    * Public functions  *
     ***********************/
 
 RBTree * rb_create(CmpFunc cmp_func){
@@ -314,6 +314,7 @@ void rb_clear(RBTree *tree){
         return ;
     }
     rb_free_node(tree->root);
+    tree->root = NULL;
     tree->size = 0;
 }
 

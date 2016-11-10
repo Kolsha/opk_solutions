@@ -119,6 +119,9 @@ void RunTests(){
 
         rb_foreach(tree, foreach_func, for_foreach);
 
+        rb_clear(tree);
+        assert(tree != NULL);
+        assert(tree->size == 0);
 
         free(arr_d);
         rb_destroy(tree);
