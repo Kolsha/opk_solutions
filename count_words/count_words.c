@@ -137,7 +137,7 @@ CounterResult *getstat(char *str){
             }
             t++;
             assert(ht_set(&(res->hWords), word, (Pointer)t) != NULL);
-
+            free(word);
             continue;
         }
         if(c == '\n'){

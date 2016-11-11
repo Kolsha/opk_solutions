@@ -12,7 +12,7 @@ static List *create_list(char *key, Pointer data){
         return NULL;
     }
     res->data = data;
-    res->key = key;
+    res->key = strdup(key);
     res->next = NULL;
     return res;
 }
@@ -167,9 +167,12 @@ int ht_resize(HashTable *ht, size_t new_size){
         if(htable[i] != NULL)
         {
             assert(ht_set(ht, htable[i]->key, htable[i]->data) != NULL);
+            free(htable[i]->key);
+            free(htable[i]);
         }
     }
 
+    free(htable);
     return 1;
 
 }
@@ -212,13 +215,13 @@ void ht_destroy(HashTable *ht){
         while(nlist != NULL){
             (ht->dtor != NULL) ? ht->dtor(nlist->data) : NULL;
             tmp = nlist->next;
+            free(nlist->key);
             free(nlist);
             nlist = tmp;
         }
     }
     free(ht->table);
-    free(ht);
-
+    //free(ht);
 }
 
 void ht_delete(HashTable *ht, char *key){
@@ -237,6 +240,7 @@ void ht_delete(HashTable *ht, char *key){
         next = cur->next;
         if(strcmp(cur->key, key) == 0){
             (ht->dtor != NULL) ? ht->dtor(cur->data) : NULL;
+            free(cur->key);
             free(cur);
             if(prev == NULL){
                 ht->table[index] = next;
