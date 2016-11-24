@@ -14,9 +14,6 @@
 
 #include "myHttp/myHttp.h"
 
-
-
-
 static void free_players(Game *gm){
 
     JSONList *runner = gm->players, *tmp;

@@ -71,7 +71,7 @@
 #define MSG_PRIVATE_FAQ "\u26A0 Add me in group and use /start to start game ;)"
 #define MSG_FEW_PLAYERS "\u26A0 Too few players =|"
 
-#define MSG_ROLE_SEND_FAIL "\u26A0 I can't send role"
-#define MSG_ROLE_SEND_FAIL_MASK "\u26A0 %s i can't send your role, ask me himself /role ;)"
+#define MSG_ROLE_SEND_FAIL "\u26A0 I can't send role, use /role in private chat"
+#define MSG_ROLE_SEND_FAIL_MASK "\u26A0 %s i can't send your role, ask me himself /role in private chat ;)"
 
 #endif

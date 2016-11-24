@@ -460,8 +460,6 @@ int botListener(JSONObj *upd){
         }
     }
 
-
-
     return 1;
 }
 
