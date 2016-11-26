@@ -27,6 +27,7 @@ void reset_player(Player *pl){
         return ;
     }
     pl->votes = 0;
+    pl->hide = 0;
     pl->action = (pa_none);
     pl->action_for_player = NULL;
     pl->flag = pf_none;
@@ -43,12 +44,8 @@ void loose_player(Player *pl){
         free(pl->chat_id);
         pl->chat_id = NULL;
     }
-    pl->action = (pa_none);
-    pl->action_for_player = NULL;
     pl->game = NULL;
-    pl->state = ps_none;
-    pl->flag = pf_none;
-    pl->votes = 0;
+    reset_player(pl);
 
 }
 
@@ -63,7 +60,7 @@ Player *create_player(){
     {
         res->action = pa_none;
         res->action_for_player = NULL;
-        res->balance = 0;
+        res->balance = START_BALANCE;
         res->chat_id = NULL;
         res->first_name = NULL;
         res->game = NULL;
@@ -78,6 +75,7 @@ Player *create_player(){
         res->user_id = NULL;
         res->full_name = NULL;
         res->votes = 0;
+        res->hide = 0;
     }
 
     return res;
@@ -364,6 +362,6 @@ char *get_player_statistic(Player *pl){
     }
     char *res = build_request(PLAYER_STAT, pl->statistic.as_civilian,
                               pl->statistic.as_maniac, pl->statistic.as_maniac,
-                              pl->statistic.num_deaths);
+                              pl->statistic.num_deaths, pl->balance);
     return res;
 }

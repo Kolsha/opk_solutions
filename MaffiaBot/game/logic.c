@@ -300,7 +300,6 @@ static int game_check(Game *gm){
 
     if(msg != NULL){
         bot_send_msg(&mBot, gm->chat_id, msg, NULL);
-        //update_statistic
         reset_game(gm);
         return 0;
     }
@@ -353,7 +352,8 @@ static int players_process(Game *gm){
             if(pl->role == pr_cop && gm->state == gs_night){
                 char *msg =
                         build_request("%s is %s", victim->full_name,
-                                      (victim->role == pr_maffia) ? "Maffia" : "Civilian");
+                                      (victim->role == pr_maffia &&
+                                       !victim->hide) ? "Maffia" : "Civilian");
                 bot_send_msg(&mBot, pl->user_id, msg, NULL);
                 if(msg != NULL){
                     free(msg);
@@ -452,7 +452,7 @@ static int players_process(Game *gm){
         }
 
         if(gm->state == gs_night){
-            if(pl->flag == pf_killed){
+            if(pl->flag == pf_killed && pl->state == ps_player){
                 killed = 1;
                 char *buffer = frmt_str(MSG_KILLED_MASK, pl->full_name);
 
@@ -467,7 +467,7 @@ static int players_process(Game *gm){
                 pl->statistic.num_deaths++;
                 pl->state = ps_watcher;
                 pl->votes = 0;
-                pl->flag = pf_none;
+                //pl->flag = pf_none;
 
                 if(gm->num_players > 0){
                     gm->num_players--;

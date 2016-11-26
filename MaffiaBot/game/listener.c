@@ -21,10 +21,55 @@ static int check_private_cmd(char *text, Player *pl){
         return 0;
     }
 
+    if(pl->game != NULL && now_playing(pl->game)){
+        if(my_strstr(text, CMD_HIDE) != NULL){
+            if(pl->role != pr_maffia ||
+                    pl->state != ps_player){
+                bot_send_msg(&mBot, pl->user_id, MSG_NOT_NEED, NULL);
+            }else if(pl->balance < PRICE_HIDE){
+                bot_send_msg(&mBot, pl->user_id, MSG_NEED_MONEY, NULL);
+            }else{
+                pl->hide = 1;
+                pl->balance -= PRICE_HIDE;
+                bot_send_msg(&mBot, pl->user_id, MSG_HIDED, NULL);
+            }
+            return 1;
+        }
+
+        if(my_strstr(text, CMD_RET) != NULL){
+            if(pl->state == ps_player || pl->role == pr_none){
+                bot_send_msg(&mBot, pl->user_id, MSG_NOT_NEED, NULL);
+            }else if(pl->balance < PRICE_RET){
+                bot_send_msg(&mBot, pl->user_id, MSG_NEED_MONEY, NULL);
+            }else{
+                pl->state = ps_player;
+                pl->flag = pf_none;
+                pl->game->num_players++;
+                switch(pl->role){
+                case pr_maffia:
+                    pl->game->num_maffia++;
+                    break;
+                case pr_maniac:
+                    pl->game->has_maniac = 1;
+                    break;
+                default:
+                    pl->game->num_civilian++;
+                }
+
+                pl->balance -= PRICE_RET;
+                bot_send_msg(&mBot, pl->user_id, MSG_RET, NULL);
+            }
+
+
+            return 1;
+        }
+    }
+
     if(my_strstr(text, CMD_ROLE) != NULL){ //now_playing(gm) &&
         bot_send_msg(&mBot, pl->user_id, get_player_role(pl), NULL);
         return 1;
     }
+
     if(my_strstr(text, CMD_STAT) != NULL){
         char *s = get_player_statistic(pl);
         bot_send_msg(&mBot, pl->user_id, s, NULL);
@@ -71,18 +116,7 @@ static void new_chat_member(JSONObj *from, JSONObj *chat,  JSONObj *user){
         _Log_("BOT JOIN to group: %s", gm->title);
         return ;
     }
-
-
-    Player *pl = insert_player(chat_id, user);
-    if(pl != NULL){
-        if(now_playing(gm) == 1){
-            pl->action = (pa_none);
-            pl->role = pr_none;
-            pl->state = ps_watcher;
-        }
-
-    }
-
+    get_player(user);
 }
 
 static void left_chat_member(JSONObj *from, JSONObj *chat,  JSONObj *user){
@@ -209,7 +243,8 @@ static void private_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         if(pl->role == pr_cop && gm->state == gs_night){
             char *msg =
                     build_request("%s is %s", victim->full_name,
-                                  (victim->role == pr_maffia) ? "Maffia" : "Civilian");
+                                  (victim->role == pr_maffia &&
+                                   !victim->hide) ? "Maffia" : "Civilian");
             bot_send_msg(&mBot, pl->user_id, msg, NULL);
             if(msg != NULL){
                 free(msg);
@@ -262,18 +297,6 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         return ;
     }
 
-    Game *gm = get_game(chat);
-
-    Player *pl = insert_player(chat_id, from);
-    if(pl == NULL){
-        return ;
-    }
-
-    gm = (gm != NULL) ? gm : pl->game;
-    if(gm == NULL){
-        return ;
-    }
-
     char *text = json_get_str(msg, "text");
     if(text == NULL ||
             (text[0] != '/' && text[0] != '\\')){
@@ -283,7 +306,44 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         return ;
     }
 
+    Game *gm = get_game(chat);
+    Player *pl = get_player(from);
+    if(pl == NULL){
+        return ;
+    }
+
     if(check_private_cmd(text, pl)){
+        return ;
+    }
+
+    if(pl->game == NULL || pl->chat_id == NULL){
+        if(my_strstr(text, CMD_JOIN) != NULL){
+            pl = insert_player(chat_id, from);
+            if(pl != NULL){
+                if(now_playing(gm) == 1){
+                    pl->action = (pa_none);
+                    pl->role = pr_none;
+                    pl->state = ps_watcher;
+                }
+
+            }
+        }else{
+            bot_send_msg(&mBot, chat_id, "You are not in the game, use /join", NULL);
+        }
+        return ;
+    }
+
+    if(pl == NULL){
+        return ;
+    }
+
+    gm = (gm != NULL) ? gm : pl->game;
+    if(gm == NULL){
+        return ;
+    }
+
+    if(my_strstr(text, CMD_LEAVE) != NULL){
+        obtain_player_left_game(gm, pl);
         return ;
     }
 
@@ -335,7 +395,18 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
             bot_send_msg(&mBot, chat_id, MSG_GAME_WAS_STOPPED, NULL);
         }
     }
-
+    else if(my_strstr(text, CMD_START_VOTE) != NULL){
+        if(gm->state == gs_day)
+        {
+            gm->time_state = 0;
+        }
+    }
+    else if(my_strstr(text, CMD_TIME_ADD) != NULL){
+        if(now_playing(gm)){
+            gm->time_state = time(NULL) - VOTE_TIMEOUT;
+            bot_send_msg(&mBot, chat_id, MSG_TIME_ADDED, NULL);
+        }
+    }
     else{
 
         bot_send_msg(&mBot, chat_id, MSG_CMD_404, NULL);

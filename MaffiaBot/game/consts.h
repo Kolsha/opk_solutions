@@ -36,14 +36,22 @@
 #define CMD_ROLE "/role"
 #define CMD_STAT "/stat"
 #define CMD_START_VOTE "/vote"
+#define CMD_JOIN "/join"
+#define CMD_LEAVE "/leave"
+#define CMD_HIDE "/hide"
+#define CMD_RET "/ret"
+#define CMD_TIME_ADD "/timeadd"
 
 #define CMD_VOTE "\u2705"
 #define ID_SPLIT "\u2139"
 
+
 #define CMD_VOTE_PARSE "u2705"
 #define ID_SPLIT_PARSE "u2139"
 
-#define PLAYER_STAT "Statistic\nCivilian: %zu\nManiac: %zu\nMaffia: %zu\nNumber of deaths: %zu"
+#define MSG_TIME_ADDED "Time added ;)"
+
+#define PLAYER_STAT "Statistic\nCivilian: %zu\nManiac: %zu\nMaffia: %zu\nNumber of deaths: %zu\nBalance: %zu"
 
 #define MSG_CMD_404 "\u26A0 Command not found"
 
@@ -74,4 +82,15 @@
 #define MSG_ROLE_SEND_FAIL "\u26A0 I can't send role, use /role in private chat"
 #define MSG_ROLE_SEND_FAIL_MASK "\u26A0 %s i can't send your role, ask me himself /role in private chat ;)"
 
+#define MSG_NOT_NEED "You don't need it ;)"
+#define MSG_NEED_MONEY "Not enough money ;("
+#define MSG_HIDED "You are hidden from the cop;)"
+#define MSG_RET "You are alive."
+
+
+
+
+#define PRICE_HIDE 4
+#define PRICE_RET 6
+#define START_BALANCE 8
 #endif

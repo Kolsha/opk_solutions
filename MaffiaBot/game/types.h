@@ -65,6 +65,7 @@ typedef struct tPlayer {
     player_actions action;
     char *action_for_player;
 
+    int hide;
     size_t votes;
     size_t balance;
     WinsStat statistic;

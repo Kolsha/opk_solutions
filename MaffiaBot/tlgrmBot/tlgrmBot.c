@@ -167,7 +167,7 @@ int bot_send_msg(telegramBot *bot, const char *chat_id,
 
     if(!check_bot(bot) || chat_id == NULL
             || (msg == NULL && keyboard == NULL)){
-        return 0;
+        return tBAD_DATA;
     }
 
     const char *params_mask = "chat_id=%s&text=%s&reply_markup=%s&parse_mode=HTML";
@@ -238,7 +238,7 @@ int bot_edit_msg(telegramBot *bot, const char *chat_id, const char *msg_id,
                  const char *msg){
     if(!check_bot(bot) || chat_id == NULL
             || (msg == NULL || msg_id == NULL)){
-        return 0;
+        return tBAD_DATA;
     }
 
     const char *params_mask =
@@ -314,7 +314,7 @@ static int json_foreach(JSONObj *obj, Pointer func){
 int bot_obtain_updates(telegramBot *bot, UpdateListener func){
 
     if(!check_bot(bot)){
-        return -tBAD_DATA;
+        return tAUTH;
     }
 
 
@@ -327,7 +327,7 @@ int bot_obtain_updates(telegramBot *bot, UpdateListener func){
     offset = curl_escape(offset, my_strlen(offset));
 
     if(offset == NULL){
-        return 0;
+        return tBAD_DATA;
     }
 
 
@@ -336,7 +336,7 @@ int bot_obtain_updates(telegramBot *bot, UpdateListener func){
     free(offset);
 
     if(strlen(POST_DATA) < 4 || sres < 0){
-        return 0;
+        return tBAD_DATA;
     }
 
     API_URL[0] = 0;
@@ -349,7 +349,7 @@ int bot_obtain_updates(telegramBot *bot, UpdateListener func){
 
     API_URL[0] = 0;
     if(res == NULL){
-        return 0;
+        return tBAD_DATA;
     }
 
     JSONObj *json = json_parse(res), *result;
@@ -364,7 +364,7 @@ int bot_obtain_updates(telegramBot *bot, UpdateListener func){
     result = json_get(json, "result");
     if(result->type != JSON_ARRAY){
         json_free(json);
-        return -tBAD_DATA;
+        return tBAD_DATA;
     }
     json_arr_foreach(result, json_foreach, func);
 

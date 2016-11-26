@@ -44,13 +44,16 @@ static void reset_players(Game *gm){
                 switch(pl->role){
                 case pr_maffia:
                     pl->statistic.as_maffia++;
+                    pl->balance += 2;
                     break;
                 case pr_maniac:
                     pl->statistic.as_maniac++;
+                    pl->balance += 2;
                     break;
                 default:
                     if(pl->role != pr_none){
                         pl->statistic.as_civilian++;
+                        pl->balance += 1;
                     }
                 }
             }
