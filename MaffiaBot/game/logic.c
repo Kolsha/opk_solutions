@@ -133,6 +133,10 @@ void obtain_player_left_game(Game *gm, Player *pl){
 
 void start_game(Game *gm){
 
+    const char *maff_info_mask = "Your partners:\n";
+    char *tmp = NULL;
+    Player *pl = NULL;
+
     if(gm == NULL || gm->players == NULL){
         bot_send_msg(&mBot, gm->chat_id, MSG_ERROR, NULL);
         return ;
@@ -172,9 +176,11 @@ void start_game(Game *gm){
         }
         int bad_roles = 0;
 
+        char *maff_list_str = NULL;
+
         JSONList *runner = gm->players;
         while(runner != NULL){
-            Player *pl = (Player*)runner->data;
+            pl = (Player*)runner->data;
             runner = runner->next;
             if(pl == NULL){
                 continue;
@@ -212,14 +218,27 @@ void start_game(Game *gm){
                 pl->role = rnd;
             }
 
-            if(rnd != pr_maffia){
+            if(pl->role != pr_maffia){
                 gm->num_civilian++;
             }else{
                 gm->num_maffia++;
                 bad_roles++;
+                {
+                    tmp = build_request("%s\n", pl->full_name);
+                    if(tmp != NULL){
+                        char *tmp2 = my_strcat(maff_list_str, tmp);
+                        if(tmp2 != NULL){
+                            if(maff_list_str != NULL){
+                                free(maff_list_str);
+                            }
+                            maff_list_str = tmp2;
+                        }
+                        free(tmp);
+                    }
+                }
             }
 
-            if(rnd == pr_maniac){
+            if(pl->role == pr_maniac){
                 gm->has_maniac = 1;
                 bad_roles++;
             }
@@ -245,6 +264,26 @@ void start_game(Game *gm){
         }
 
 
+        if(gm->num_maffia > 1){
+            tmp = my_strcat(maff_info_mask, maff_list_str);
+            if(tmp != NULL){
+                runner = gm->players;
+                while(runner != NULL){
+                    pl = (Player*)runner->data;
+                    runner = runner->next;
+                    if(pl == NULL || pl->role != pr_maffia
+                            || pl->state != ps_player){
+                        continue;
+                    }
+                    bot_send_msg(&mBot, pl->user_id, tmp, NULL);
+                }
+                free(tmp);
+            }
+        }
+
+        if(maff_list_str != NULL){
+            free(maff_list_str);
+        }
         free(given_roles);
     }
 
@@ -411,12 +450,16 @@ static int players_process(Game *gm){
                 }
                 break;
 
-            default:
-                _Log_("%s is %s", pl->full_name, get_player_role(pl));
+            default:{
+
+                //_Log_("%s is %s", pl->full_name, get_player_role(pl));
             }
-
+            }
+            _Log_("Night: %s[%s] choose %s[%s]", pl->full_name, get_player_role(pl),
+                  victim->full_name, get_player_role(victim));
         }else if(gm->state == gs_vote){
-
+            _Log_("Day: %s[%s] choose %s[%s]", pl->full_name, get_player_role(pl),
+                  victim->full_name, get_player_role(victim));
             if(victim->flag == pf_enjoy ||
                     victim->flag == pf_enjoy_cured){
                 victim->votes = 0;
@@ -467,7 +510,6 @@ static int players_process(Game *gm){
                 pl->statistic.num_deaths++;
                 pl->state = ps_watcher;
                 pl->votes = 0;
-                //pl->flag = pf_none;
 
                 if(gm->num_players > 0){
                     gm->num_players--;

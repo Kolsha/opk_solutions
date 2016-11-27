@@ -42,6 +42,7 @@ JSONList *jfind_list(JSONList *head, Pointer data){
         }
         runner = runner->next;
     }
+    return NULL;
 }
 
 

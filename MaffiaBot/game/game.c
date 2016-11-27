@@ -33,6 +33,7 @@ static void free_players(Game *gm){
 
 static void reset_players(Game *gm){
 
+    char *who_is_who = NULL;
     JSONList *runner = gm->players;
     while(runner != NULL){
 
@@ -40,27 +41,57 @@ static void reset_players(Game *gm){
         runner = runner->next;
 
         if(pl != NULL){
-            if(pl->state == ps_player && now_playing(gm) == 1){
-                switch(pl->role){
-                case pr_maffia:
-                    pl->statistic.as_maffia++;
-                    pl->balance += 2;
-                    break;
-                case pr_maniac:
-                    pl->statistic.as_maniac++;
-                    pl->balance += 2;
-                    break;
-                default:
-                    if(pl->role != pr_none){
-                        pl->statistic.as_civilian++;
-                        pl->balance += 1;
+            if(now_playing(gm) == 1){
+                if(pl->state == ps_player){
+                    switch(pl->role){
+                    case pr_maffia:
+                        pl->statistic.as_maffia++;
+                        pl->balance += 2;
+                        break;
+                    case pr_maniac:
+                        pl->statistic.as_maniac++;
+                        pl->balance += 2;
+                        break;
+                    default:
+                        if(pl->role != pr_none){
+                            pl->statistic.as_civilian++;
+                            pl->balance += 1;
+                        }
+                    }
+                }
+
+                if((pl->state == ps_player || pl->state == ps_watcher)
+                        && pl->role != pr_none){
+                    char *tmp = build_request("%s is %s\n",
+                                              pl->full_name, get_player_role(pl));
+                    if(tmp != NULL){
+                        char *tmp2 = my_strcat(who_is_who, tmp);
+                        if(tmp2 != NULL)
+                        {
+                            if(who_is_who != NULL){
+                                free(who_is_who);
+                            }
+                            who_is_who = tmp2;
+                        }
+                        free(tmp);
                     }
                 }
             }
+
             reset_player(pl);
             gm->num_players++;
             pl->game = gm;
         }
+    }
+    if(who_is_who != NULL){
+        char *tmp = my_strcat("Who is who:\n", who_is_who);
+        if(tmp != NULL)
+        {
+            bot_send_msg(&mBot, gm->chat_id, tmp, NULL);
+            free(tmp);
+        }
+
+        free(who_is_who);
     }
 }
 

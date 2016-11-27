@@ -100,9 +100,6 @@ char *genKeyboard(char *prefix, char **arr, size_t size){
 
 
     return res;
-    //size_t needed = snprintf(NULL, 0, "%s: %s (%d)", msg, strerror(errno), errno);
-    //char  *buffer = malloc(needed);
-    //snprintf(buffer, needed, "%s: %s (%d)", msg, strerror(errno), errno);
 }
 
 int request_is_ok(JSONObj *json){
@@ -111,11 +108,13 @@ int request_is_ok(JSONObj *json){
     if(json == NULL  || (ok = json_get(json, "ok")) == NULL){
         return tBAD_DATA;
     }
+
     if(ok != J_TRUE){
         ok = json_get(json, "error_code");
         int code = atoi((char*) ok->data);
         return (code > 0) ? code : tBAD_DATA;
     }
+
     return tALL_OK;
 }
 
@@ -211,7 +210,6 @@ int bot_send_msg(telegramBot *bot, const char *chat_id,
     }
 
     char *res =  http_post(API_URL , POST_DATA);
-    //printf("%s\n", res);
     API_URL[0] = 0;
     if(res == NULL){
         return 0;
@@ -303,6 +301,7 @@ int bot_edit_msg(telegramBot *bot, const char *chat_id, const char *msg_id,
 }
 
 static int json_foreach(JSONObj *obj, Pointer func){
+
     if(obj == NULL || func == NULL){
         return 1;
     }
@@ -317,22 +316,20 @@ int bot_obtain_updates(telegramBot *bot, UpdateListener func){
         return tAUTH;
     }
 
-
     const char *params_mask = "offset=%s";
     char *offset = bot->update_id;
     if(offset == NULL)
     {
         offset = "";
     }
-    offset = curl_escape(offset, my_strlen(offset));
 
+    offset = curl_escape(offset, my_strlen(offset));
     if(offset == NULL){
         return tBAD_DATA;
     }
 
 
     int sres = sprintf(POST_DATA, params_mask, offset);
-
     free(offset);
 
     if(strlen(POST_DATA) < 4 || sres < 0){
@@ -346,8 +343,8 @@ int bot_obtain_updates(telegramBot *bot, UpdateListener func){
     }
 
     char *res =  http_post(API_URL , POST_DATA);
-
     API_URL[0] = 0;
+
     if(res == NULL){
         return tBAD_DATA;
     }
@@ -366,6 +363,7 @@ int bot_obtain_updates(telegramBot *bot, UpdateListener func){
         json_free(json);
         return tBAD_DATA;
     }
+
     json_arr_foreach(result, json_foreach, func);
 
     json_free(json);
@@ -418,7 +416,6 @@ JSONObj *bot_get_chat_admins(telegramBot *bot, char *chat_id){
     }
 
     char *res =  http_post(API_URL , POST_DATA);
-    //printf("%s\n", res);
     API_URL[0] = 0;
     if(res == NULL){
         return NULL;
@@ -431,5 +428,6 @@ JSONObj *bot_get_chat_admins(telegramBot *bot, char *chat_id){
         json_free(json);
         return NULL;
     }
+
     return json;
 }

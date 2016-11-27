@@ -24,6 +24,7 @@ int mRand(int min, int max);
 char *frmt_str(char *one_frmt, char *one_param);
 
 char *frmt_time(time_t tm);
+
 char *build_request(char *frmt, ...);
 
 #endif // STR_UTILS_H

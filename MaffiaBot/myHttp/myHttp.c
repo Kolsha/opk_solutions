@@ -3,12 +3,8 @@
 #include <curl/curl.h>
 #include <stdarg.h>
 
-#include "myHttp.h"
-
-#include <iconv.h>
-
-#define CURL_ICONV_CODESET_OF_HOST "UTF-8"
-#define CURL_ICONV_CODESET_FOR_UTF8 "ASCII"
+#include "myHttp/myHttp.h"
+#include "json/str_utils.h"
 
 static httpclient mHttp = {30, "text/plain; q=0.5, text/html; charset=ASCII;", "MaffiaBot", "", 0, -1};
 
@@ -32,7 +28,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 
     if(memory == NULL) {
         mHttp.error_num = 3;
-        printf("not enough memory (realloc returned NULL)\n");
+        _Log_("not enough memory (realloc returned NULL)\n");
         return 0;
     }
     mem->memory = memory;
@@ -75,8 +71,7 @@ static CURL *my_curl_init(){
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
         curl_easy_setopt(curl, CURLOPT_USERAGENT, mHttp.user_agent);
-        //curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-        //curl_easy_setopt(curl, CURLOPT_CONV_FROM_UTF8_FUNCTION, NULL);
+
         return curl;
     }
     return NULL;

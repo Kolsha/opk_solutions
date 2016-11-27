@@ -1,6 +1,8 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "str_utils.h"
 
@@ -16,7 +18,7 @@ char *frmt_time(time_t tm){
     localtime_r(&tm, &tm_now);
 
     strftime(time_str, sizeof(time_str), "%M:%S", &tm_now);
-    return strdup(time_str);
+    return (char*)strdup(time_str);
 }
 
 
@@ -89,6 +91,7 @@ char *my_strcat(char *s1, char *s2){
     if(res == NULL){
         return NULL;
     }
+    res[0] = '\0';
     res[len - 1] = '\0';
     if(s1 != NULL)
     {
@@ -151,7 +154,7 @@ void _Log_(char *frmt, ...){
     strcat(modified, prefix);
     strcat(modified, frmt);
     vprintf(modified, args);
-    vprintf("\n");
+    vprintf("\n", NULL);
     free(modified);
     if(now != NULL){
         free(prefix);

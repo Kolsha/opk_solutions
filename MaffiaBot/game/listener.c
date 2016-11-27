@@ -226,7 +226,8 @@ static void private_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
             rnd = 0;
         }
 
-        if(victim == NULL){
+        if(victim == NULL
+                || victim->game != gm){
             if(!rnd)
             {
                 bot_send_msg(&mBot, pl->user_id, MSG_BAD_VOTE, NULL);
@@ -500,7 +501,7 @@ int botListener(JSONObj *upd){
             return 1;
         }
 
-        _Log_("%s: %s", json_get_str(from, "first_name"), tmp_s);
+        //_Log_("%s: %s", json_get_str(from, "first_name"), tmp_s);
 
         if(!group){
             if(tmp_s[0] == '#'){

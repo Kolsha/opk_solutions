@@ -28,7 +28,7 @@ typedef struct telegramBot{
 
 typedef int (*UpdateListener)(JSONObj *upd);
 
-int bot_check(telegramBot *bot);//bot_check
+int bot_check(telegramBot *bot);
 
 int bot_send_msg(telegramBot *bot, const char *chat_id,
                  const char *msg, const char *keyboard);
