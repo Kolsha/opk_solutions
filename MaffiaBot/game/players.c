@@ -310,6 +310,7 @@ char *get_player_role(Player *pl){
 }
 
 char *get_player_night_action(Player *pl){
+
     if(pl == NULL){
         return NULL;
     }

@@ -26,6 +26,4 @@ char *http_last_error();
 
 void http_free();
 
-
-
 #endif

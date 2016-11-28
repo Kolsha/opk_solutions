@@ -12,6 +12,4 @@ void start_game(Game *gm);
 
 int RunGame(char *token);
 
-
-
-#endif // GAME_H
+#endif

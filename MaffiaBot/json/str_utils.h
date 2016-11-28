@@ -27,5 +27,4 @@ char *frmt_time(time_t tm);
 
 char *build_request(char *frmt, ...);
 
-#endif // STR_UTILS_H
-
+#endif

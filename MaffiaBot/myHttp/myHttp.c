@@ -43,6 +43,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 int http_init()
 {
     mHttp.state = 1;
+    mHttp.error_num = -1;
     chunk.memory = NULL;
     chunk.size = 0;
 
@@ -55,7 +56,7 @@ void http_free(){
 
 char *http_last_error(){
 
-    return ((mHttp.error_num) ? ERRORS[mHttp.error_num] : NULL);
+    return ((mHttp.error_num >= 0) ? ERRORS[mHttp.error_num] : NULL);
 }
 
 static CURL *my_curl_init(){
@@ -78,7 +79,9 @@ static CURL *my_curl_init(){
 }
 
 static char *http_request(char *url, char *post){
-    mHttp.error_num = 0;
+
+    mHttp.error_num = -1;
+
     if(!mHttp.state && !http_init()){
         mHttp.error_num = 1;
         return NULL;
@@ -107,7 +110,7 @@ static char *http_request(char *url, char *post){
 
         if(res != CURLE_OK)
         {
-            if(mHttp.error_num == 0)
+            if(mHttp.error_num < 0)
             {
                 mHttp.error_num = 2;
             }

@@ -9,5 +9,4 @@ telegramBot mBot;
 
 int botListener(JSONObj *upd);
 
-#endif // LISTENER_H
-
+#endif

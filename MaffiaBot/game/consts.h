@@ -93,4 +93,5 @@
 #define PRICE_HIDE 4
 #define PRICE_RET 6
 #define START_BALANCE 8
+
 #endif

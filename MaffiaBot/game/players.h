@@ -37,5 +37,4 @@ Player *get_rand_player(Game *gm);
 
 char *get_player_statistic(Player *pl);
 
-#endif // PLAYERS
-
+#endif

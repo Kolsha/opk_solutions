@@ -86,5 +86,4 @@ typedef struct tSearchPlayerStruct{
 
 
 
-#endif // TYPES_AND_CONSTS_H
-
+#endif

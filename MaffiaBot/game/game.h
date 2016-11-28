@@ -28,4 +28,4 @@ int now_playing(Game *gm);
 
 char *get_time_left(Game *gm);
 
-#endif // GAME_H
+#endif

@@ -106,9 +106,8 @@ static void new_chat_member(JSONObj *from, JSONObj *chat,  JSONObj *user){
         return ;
     }
 
-    Player *pl_from = get_player(from);
-
     if(userIsI){
+        Player *pl_from = insert_player(chat_id, from);
         if(gm->inviter == NULL)
         {
             gm->inviter = pl_from;
@@ -116,6 +115,7 @@ static void new_chat_member(JSONObj *from, JSONObj *chat,  JSONObj *user){
         _Log_("BOT JOIN to group: %s", gm->title);
         return ;
     }
+
     get_player(user);
 }
 
