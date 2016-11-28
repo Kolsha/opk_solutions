@@ -50,7 +50,8 @@ typedef struct tWinsStat{
     size_t as_maffia;
     size_t as_maniac;
     size_t num_deaths;
-} WinsStat;
+    size_t games;
+} PlayerStat;
 
 typedef struct tPlayer {
 
@@ -68,22 +69,8 @@ typedef struct tPlayer {
     int hide;
     size_t votes;
     size_t balance;
-    WinsStat statistic;
+    PlayerStat statistic;
 } Player;
-
-typedef void (*SearchPlayersFunction)(Player *pl, Game* game);
-
-typedef struct tSearchPlayerStruct{
-    Game* game;
-    SearchPlayersFunction func;
-} SearchPlayerStruct;
-
-
-
-
-
-
-
 
 
 #endif

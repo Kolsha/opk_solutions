@@ -501,7 +501,7 @@ int botListener(JSONObj *upd){
             return 1;
         }
 
-        //_Log_("%s: %s", json_get_str(from, "first_name"), tmp_s);
+        _Log_("%s: %s", json_get_str(from, "first_name"), tmp_s);
 
         if(!group){
             if(tmp_s[0] == '#'){

@@ -70,6 +70,7 @@ Player *create_player(){
         res->statistic.as_maffia = 0;
         res->statistic.as_maniac = 0;
         res->statistic.num_deaths = 0;
+        res->statistic.games = 0;
         res->state = ps_created;
         res->username = NULL;
         res->user_id = NULL;

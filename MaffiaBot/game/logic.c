@@ -136,7 +136,6 @@ void start_game(Game *gm){
     const char *maff_info_mask = "Your partners:\n";
     char *tmp = NULL;
     Player *pl = NULL;
-
     if(gm == NULL || gm->players == NULL){
         bot_send_msg(&mBot, gm->chat_id, MSG_ERROR, NULL);
         return ;
