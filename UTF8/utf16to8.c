@@ -60,28 +60,15 @@ char *codepoint_to_utf8b(unsigned cp){
         }
     }
 
-    char str[9] = {0};
-    char utf8b[17] = {0};
-
-    if(!sprintf(str, "%X", res)){
-        return NULL;
-    }
-    i = 0;
+    char utf8b[5] = {0};
     pos = 0;
-    while(str[i] != 0){
-        if(i % 2 != 0){
-            return NULL;
+    for(i = 3; i >= 0; i--){
+        char byte = ((unsigned char *)(&res))[i];
+        if(byte == 0){
+            continue;
         }
-        utf8b[pos++] = '\\';
-        utf8b[pos++] = 'x';
-        utf8b[pos++] = str[i++];
-        if(str[i] == 0){
-            return NULL;
-        }
-        utf8b[pos++] = str[i++];
-
+        utf8b[pos++] = byte;
     }
-
     return (i == 0) ? NULL : strdup(utf8b);
 }
 
@@ -169,7 +156,7 @@ char *utf16s_to_utf8b(char *utf16s){
             if(utf8b != NULL){
                 size_t utf8_len = strlen(utf8b);
                 //printf("%s\n", utf8b);
-                if(utf8_len > 3){
+                if(utf8_len > 0){
                     if((res_len <= res_pos) ||
                             (res_len - res_pos) < utf8_len){
 

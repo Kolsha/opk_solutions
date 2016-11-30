@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include "tests.h"
 #include "utf16to8.h"
 
 int main(void)
