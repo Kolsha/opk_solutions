@@ -52,6 +52,9 @@ int RunGame(char *token){
             _Log_("Bad token for Bot. Exit.");
             return 0;
         }
+        //char *test = "1Who is who:\nArtem is Maffia\n\xD0\xA1\xD0\xB5\xD1\x80\xD0\xB3\xD0\xB5\xD0\xB9(@DESTR0Y) efsdf";
+        //int res = bot_send_msg(&mBot, "287129494", test, NULL);
+        //return 0;
         players =  create_HashTable(START_PLAYERS_SIZE, NULL, NULL);
         if(players == NULL){
             _Log_(MSG_MEMORY_ERROR);

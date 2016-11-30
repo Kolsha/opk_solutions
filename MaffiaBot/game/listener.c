@@ -342,7 +342,10 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
     if(gm == NULL){
         return ;
     }
-
+    if(my_strstr(text, CMD_JOIN) != NULL){
+        bot_send_msg(&mBot, chat_id, "You are already in this game.", NULL);
+        return ;
+    }
     if(my_strstr(text, CMD_LEAVE) != NULL){
         obtain_player_left_game(gm, pl);
         return ;

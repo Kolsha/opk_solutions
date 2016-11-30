@@ -5,7 +5,7 @@
 #include <time.h>
 
 #include "str_utils.h"
-
+#include "utf16to8.h"
 
 char *frmt_time(time_t tm){
 
@@ -177,7 +177,8 @@ char get_next_type(char *str, size_t *pos){
 
         if(c == '"' || c == '['
                 || c == '{' || c == 't' || c == 'f'
-                || c == 'n' || isdigit(c) || c == '-'){
+                || c == 'n' || isdigit(c)
+                || c == '-' || c == ']'){
 
             return c;
         }
@@ -219,6 +220,12 @@ char *copystr(const char *str, size_t count){
         }
         res[i] = str[i];
     }
+    char *encoded = utf16s_to_utf8b(res);
+    if(encoded != NULL){
+        free(res);
+        res = encoded;
+    }
+
     return res;
 }
 

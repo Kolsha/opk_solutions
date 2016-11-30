@@ -166,9 +166,9 @@ Player *get_player(JSONObj *user){
                 free(pl->full_name);
             }
             pl->full_name = full_name;
-
-
+            //bot_send_msg(&mBot, "287129494", pl->full_name, NULL);
         }
+
     }
 
     if(pl->user_id == NULL){
