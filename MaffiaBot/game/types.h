@@ -55,7 +55,6 @@ typedef struct tWinsStat{
 
 typedef struct tPlayer {
 
-    char *chat_id;
     char *user_id;
     Game *game;
     char *username, *first_name, *full_name;
@@ -64,7 +63,7 @@ typedef struct tPlayer {
     player_roles role;
     player_flags flag;
     player_actions action;
-    char *action_for_player;
+    struct tPlayer *victim;
 
     int hide;
     size_t votes;

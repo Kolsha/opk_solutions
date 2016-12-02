@@ -3,6 +3,12 @@
 #include <string.h>
 #include <time.h>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <errno.h>
+#include <dirent.h>
+#include <stdio.h>
+
 #include "json/json.h"
 #include "json/hash_table.h"
 #include "tlgrmBot/tlgrmBot.h"
@@ -29,7 +35,7 @@ void reset_player(Player *pl){
     pl->votes = 0;
     pl->hide = 0;
     pl->action = (pa_none);
-    pl->action_for_player = NULL;
+    pl->victim = NULL;
     pl->flag = pf_none;
     pl->role = pr_none;
     pl->state = ps_none;
@@ -40,10 +46,7 @@ void loose_player(Player *pl){
     if(pl == NULL){
         return ;
     }
-    if(pl->chat_id != NULL){
-        free(pl->chat_id);
-        pl->chat_id = NULL;
-    }
+
     pl->game = NULL;
     reset_player(pl);
 
@@ -59,9 +62,8 @@ Player *create_player(){
     //Set New Player default
     {
         res->action = pa_none;
-        res->action_for_player = NULL;
+        res->victim = NULL;
         res->balance = START_BALANCE;
-        res->chat_id = NULL;
         res->first_name = NULL;
         res->game = NULL;
         res->flag = pf_none;
@@ -88,9 +90,6 @@ void free_player(Player *pl){
         return ;
     }
 
-    if(pl->chat_id != NULL){
-        free(pl->chat_id);
-    }
     if(pl->first_name != NULL){
         free(pl->first_name);
     }
@@ -102,9 +101,6 @@ void free_player(Player *pl){
     }
     if(pl->user_id != NULL){
         free(pl->user_id);
-    }
-    if(pl->action_for_player != NULL){
-        free(pl->action_for_player);
     }
     free(pl);
 }
@@ -208,13 +204,13 @@ Player *insert_player(char *chat_id, JSONObj *user){
     }
 
     Game *gm = get_game_by_chat_id(chat_id);
+    if(gm == NULL){
+        return NULL;
+    }
 
     if(pl->state == ps_created){
-        pl->chat_id = (char*) strdup(chat_id);
-        if(pl->chat_id == NULL){
-            free_player(pl);
-            return NULL;
-        }
+
+        pl->game = gm;
         pl->state = ps_none;
 
         assert(ht_set(players, pl->user_id, pl));
@@ -235,15 +231,15 @@ Player *insert_player(char *chat_id, JSONObj *user){
         }
 
 
-    }else if(pl->chat_id != NULL && strcmp(chat_id, pl->chat_id) != 0) {
+    }else if(pl->game != NULL && pl->game != gm){
 
-        _Log_("%s already in group: %s", pl->full_name, gm->title);
+        _Log_("%s already in group: %s", pl->full_name, pl->game->title);
 
         char *buffer = frmt_str(MSG_NEW_MEMBER_BAD_MASK, pl->full_name);
 
         if(buffer == NULL){
             bot_send_msg(&mBot, chat_id, MSG_NEW_MEMBER_BAD, NULL);
-        } else{
+        }else{
             bot_send_msg(&mBot, chat_id, buffer, NULL);
             free(buffer);
         }
@@ -273,12 +269,10 @@ char *gen_player_name(Player *pl){
     }
     res[len - 1] = '\0';
 
-    if(len1 > 0)
-    {
+    if(len1 > 0){
         strcpy(res, pl->first_name);
     }
-    if(len2 > 0)
-    {
+    if(len2 > 0){
         strcat(res, "(@");
         strcat(res, pl->username);
         strcat(res, ")");
@@ -367,3 +361,69 @@ char *get_player_statistic(Player *pl){
                               pl->statistic.num_deaths, pl->balance);
     return res;
 }
+
+
+
+
+static void read_player_from_file(char *fn){
+
+    if(fn == NULL || fn[0] == '.'){
+        return ;
+    }
+
+}
+
+void save_players(){
+
+    int result = mkdir(DATA_DIR, 0777);
+    if(result != 0 && errno != EEXIST){
+        _Log_("Failed create dir %s", DATA_DIR);
+        return ;
+    }
+
+    result = mkdir(PLAYERS_DIR, 0777);
+    if(result != 0 && errno != EEXIST){
+        _Log_("Failed create dir %s", PLAYERS_DIR);
+        return ;
+    }
+
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir(PLAYERS_DIR)) != NULL){
+        while ((ent = readdir (dir)) != NULL) {
+
+            if(ent->d_name != NULL && ent->d_name[0] != '.'
+                    && ent->d_type == 8){
+                _Log_("%s", ent->d_name);
+                read_player_from_file(ent->d_name);
+            }
+        }
+        closedir (dir);
+    }
+
+    Player *pl = create_player();
+    char *path = my_strcat(PLAYERS_DIR, "#12345");
+    if(path == NULL){
+        return ;
+    }
+    /*FILE *file= fopen(path, "rb");
+    if (file != NULL) {
+        fread(pl, sizeof(struct tPlayer), 1, file);
+        fclose(file);
+    }*/
+
+    pl->username = strdup("Test");
+    pl->first_name = strdup("First");
+
+    FILE *file = fopen(path, "w");
+    if (file != NULL){
+
+        ///fscanf(file, "%s\n", )
+        fwrite(pl, sizeof(struct tPlayer), 1, file);
+        fclose(file);
+        _Log_("Written");
+    }
+    free(path);
+
+}
+

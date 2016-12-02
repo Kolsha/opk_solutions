@@ -13,11 +13,14 @@ void _Log_(char *frmt, ...);
 
 char *my_strcat(char *s1, char *s2);
 
+char *my_strcpy(char *dest, char *src, size_t dest_sz);
+
 size_t my_strlen(char *s);
 
 int go_to_next(char *str, size_t *pos);
 
-char *my_strstr(char *haystack, char *needle);
+char *my_strstr(char *haystack,
+                char *needle);
 
 int mRand(int min, int max);
 

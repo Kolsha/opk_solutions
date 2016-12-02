@@ -159,10 +159,6 @@ static void left_chat_member(JSONObj *from, JSONObj *chat,  JSONObj *user){
         gm->inviter = NULL;
     }
 
-
-
-
-
     if(pl != NULL && pl->game == gm){
         _Log_("%s LEFT from group: %s", pl->first_name, gm->title);
         obtain_player_left_game(gm, pl);
@@ -191,24 +187,18 @@ static void private_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         return ;
     }
 
-    if(pl->chat_id == NULL){
+    if(pl->game == NULL){
         loose_player(pl);
         bot_send_msg(&mBot, pl->user_id, MSG_PRIVATE_FAQ, NULL);
         return ;
     }
 
-    Game *gm = get_game_by_chat_id(pl->chat_id);
-    gm = (gm != NULL) ? gm : pl->game;
-    if(gm == NULL){
-        loose_player(pl);
-        return ;
-    }
-
+    Game *gm = pl->game;
 
     if(pl->action == pa_wait_answer &&
             now_playing(gm) == 1){
 
-        if(my_strstr(text, CMD_VOTE_PARSE) == NULL){
+        if(my_strstr(text, CMD_VOTE) == NULL){//_PARSE
             bot_send_msg(&mBot, pl->user_id, MSG_BAD_VOTE, "");
             return ;
         }
@@ -216,11 +206,11 @@ static void private_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         int rnd = 1;
         Player *victim = NULL;
 
-        if(my_strstr(text, BTN_RANDOM_PARSE) == NULL){
+        if(my_strstr(text, BTN_RANDOM) == NULL){//_PARSE
 
-            char *id = my_strstr(text, ID_SPLIT_PARSE);
+            char *id = my_strstr(text, ID_SPLIT);//_PARSE
             if(id != NULL){
-                id += my_strlen(ID_SPLIT) + 2;
+                id += my_strlen(ID_SPLIT);
                 victim = get_player_by_id(id);
             }
             rnd = 0;
@@ -238,7 +228,7 @@ static void private_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
             }
         }
 
-        pl->action_for_player = victim->user_id;
+        pl->victim = victim;
         pl->action = (pa_none);
 
         if(pl->role == pr_cop && gm->state == gs_night){
@@ -279,7 +269,7 @@ static void admin_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
     }
 
     char *text = json_get_str(msg, "text");
-    if(text == NULL){
+    if(text == NULL || text[0] != '#'){
         return ;
     }
 
@@ -317,7 +307,7 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         return ;
     }
 
-    if(pl->game == NULL || pl->chat_id == NULL){
+    if(pl->game == NULL){
         if(my_strstr(text, CMD_JOIN) != NULL){
             pl = insert_player(chat_id, from);
             if(pl != NULL){

@@ -72,8 +72,8 @@ static void HashTableTest(){
 
 static void JsonTest(){
 
-    JSONObj *json =
-            json_parse("{\"a\":\"abcde\", \"b\": 1234, \"c\":{\"d\": 1234}, \"array\":[1234]}");
+    JSONObj *json = json_parse(
+                "{\"a\":\"abcde\", \"b\": 1234, \"c\":{\"d\": 1234}, \"array\":[1234]}");
     JSONObj *tmp;
     char *str;
     assert(json != NULL);

@@ -27,8 +27,8 @@
 #define BOT_TIMEOUT 1//sec
 #define GMP_TIMEOUT 6//sec
 
-#define BTN_RANDOM "Choose Random \u2757"
-#define BTN_RANDOM_PARSE "u2757"
+#define BTN_RANDOM "Choose Random \xE2\x9D\x97"
+//#define BTN_RANDOM_PARSE "u2757"
 
 #define CMD_TIME_LEFT "/timeleft"
 #define CMD_START "/start"
@@ -42,12 +42,12 @@
 #define CMD_RET "/ret"
 #define CMD_TIME_ADD "/timeadd"
 
-#define CMD_VOTE "\u2705"
-#define ID_SPLIT "\u2139"
+#define CMD_VOTE "\xE2\x9C\x85"
+#define ID_SPLIT "\xE2\x84\xB9"
 
 
-#define CMD_VOTE_PARSE "u2705"
-#define ID_SPLIT_PARSE "u2139"
+//#define CMD_VOTE_PARSE "u2705"
+//#define ID_SPLIT_PARSE "u2139"
 
 #define MSG_TIME_ADDED "Time added ;)"
 
@@ -70,8 +70,8 @@
 #define MSG_ERROR "\u26A0 Sorry, an error occurred"
 #define MSG_BAD_CHAT "\u26A0 Guys I can't work here, kill me ;)"
 #define MSG_NOT_ALL_ADMIN "Guys, please do all admins ;)"
-#define MSG_NEW_MEMBER_BAD "\u1F6AB Guys,  new member already in game =|"
-#define MSG_NEW_MEMBER_BAD_MASK "\u1F6AB %s already in game =|"
+#define MSG_NEW_MEMBER_BAD "\x3D\xD8\xAB\xDE  Guys,  new member already in game =|"
+#define MSG_NEW_MEMBER_BAD_MASK "\x3D\xD8\xAB\xDE %s already in game =|"
 #define MSG_MEMORY_ERROR "Memory problem. Buy new PC."
 #define MSG_ACCESS "\u26A0 Only inviter can manage game =P"
 #define MSG_ACCESS_MASK "\u26A0 Only %s can manage game =P"
@@ -87,11 +87,18 @@
 #define MSG_HIDED "You are hidden from the cop;)"
 #define MSG_RET "You are alive."
 
-
-
-
+/*********PRICES******/
 #define PRICE_HIDE 4
 #define PRICE_RET 6
 #define START_BALANCE 8
+/*********PRICES******/
+
+
+/*********DIRS******/
+
+#define DATA_DIR "data/"
+#define PLAYERS_DIR "data/players/"
+
+/*********DIRS******/
 
 #endif

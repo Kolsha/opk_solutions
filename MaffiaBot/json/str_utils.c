@@ -21,16 +21,37 @@ char *frmt_time(time_t tm){
     return (char*)strdup(time_str);
 }
 
+char *my_strcpy(char *dest, char *src, size_t dest_sz){
+
+    if(dest == NULL || src == NULL
+            || dest_sz < 1){
+        return NULL;
+    }
+
+    for(size_t i = 0; i < dest_sz - 1; i++){
+        dest[i] = src[i];
+        if(dest[i] == '\0'){
+            break;
+        }
+    }
+    dest[dest_sz - 1] = '\0';
+    return dest;
+
+}
+
 
 
 int mRand(int min, int max){
     return min + rand() % (max - min + 1);
 }
 
-char *my_strstr(char *haystack, char *needle){ //horspul
+char *my_strstr(char *haystack,
+                char *needle){ //horspul
 
-    int lenstr = my_strlen(haystack);
-    int lensubstr = my_strlen(needle);
+    unsigned char *str = (unsigned char*) haystack;
+    unsigned char *substr = (unsigned char*) needle;
+    int lenstr = my_strlen(str);
+    int lensubstr = my_strlen(substr);
 
     if (lenstr < 1 || lensubstr < 1 || lensubstr > lenstr){
         return NULL;
@@ -43,16 +64,16 @@ char *my_strstr(char *haystack, char *needle){ //horspul
 
     memset(table, lensubstr, 256 * sizeof(char));
     for(int c = lensubstr - 2; c > 0; c--){
-        if(table[(int)needle[c]] == lensubstr)
-            table[(int)needle[c]] = lensubstr - c;
+        if(table[(int)substr[c]] == lensubstr)
+            table[(int)substr[c]] = lensubstr - c;
     }
 
     for(int i = 0; i <= (lenstr - lensubstr); i++){
-        if (haystack[i] == needle[0]){
+        if (str[i] == substr[0]){
             int match = 1;
             for(int c = 0; c < lensubstr; c++)
             {
-                match = (haystack[i + c] == needle[c]);
+                match = (str[i + c] == substr[c]);
                 if(!match){
                     break;
                 }
@@ -61,10 +82,10 @@ char *my_strstr(char *haystack, char *needle){ //horspul
             if(match)
             {
                 free(table);
-                return &(haystack[i]);
+                return &(str[i]);
             }
             else{
-                int stop = (int)haystack[i + lensubstr - 1];
+                int stop = (int)str[i + lensubstr - 1];
                 i += table[stop];
             }
 
