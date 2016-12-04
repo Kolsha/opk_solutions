@@ -9,6 +9,7 @@
 #include "json/str_utils.h"
 
 #define MAX_URL_LEN 2000
+
 static const char *API_URL_MASK = "https://api.telegram.org/bot%s/%s?";
 static char API_URL[MAX_URL_LEN] = {0};
 static char POST_DATA[MAX_URL_LEN] = {0};
@@ -180,7 +181,7 @@ int bot_send_msg(telegramBot *bot, const char *chat_id,
         free(msg_e);
         return 0;
     }
-    char *keyboard_e = "";
+    char *keyboard_e = NULL;
 
     if(keyboard != NULL){
         keyboard_e = curl_escape(keyboard, strlen(keyboard));
@@ -198,6 +199,7 @@ int bot_send_msg(telegramBot *bot, const char *chat_id,
 
     free(msg_e);
     free(chat_id_e);
+    free(keyboard_e);
 
     if(strlen(POST_DATA) < 10 || sres < 0){
         return 0;
@@ -216,6 +218,7 @@ int bot_send_msg(telegramBot *bot, const char *chat_id,
     }
 
     JSONObj *json = json_parse(res), *result;
+    free(res);
 
     sres = request_is_ok(json);
     if(sres != tALL_OK){
@@ -234,6 +237,7 @@ int bot_send_msg(telegramBot *bot, const char *chat_id,
 
 int bot_edit_msg(telegramBot *bot, const char *chat_id, const char *msg_id,
                  const char *msg){
+
     if(!check_bot(bot) || chat_id == NULL
             || (msg == NULL || msg_id == NULL)){
         return tBAD_DATA;
@@ -430,4 +434,40 @@ JSONObj *bot_get_chat_admins(telegramBot *bot, char *chat_id){
     }
 
     return json;
+}
+
+void bot_clear(telegramBot *bot){
+
+    if(bot == NULL){
+        return ;
+    }
+
+    bot->last = 0;
+    bot->valid = 0;
+
+    if(bot->first_name != NULL){
+        free(bot->first_name);
+    }
+
+    if(bot->id != NULL){
+        free(bot->id);
+    }
+
+    if(bot->token != NULL){
+        free(bot->token);
+    }
+
+    if(bot->update_id != NULL){
+        free(bot->update_id);
+    }
+
+    if(bot->username != NULL){
+        free(bot->username);
+    }
+
+    bot->first_name = NULL;
+    bot->id = NULL;
+    bot->token = NULL;
+    bot->update_id = NULL;
+    bot->username = NULL;
 }

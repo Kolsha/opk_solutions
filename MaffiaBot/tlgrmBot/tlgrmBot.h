@@ -30,6 +30,8 @@ typedef int (*UpdateListener)(JSONObj *upd);
 
 int bot_check(telegramBot *bot);
 
+void bot_clear(telegramBot *bot);
+
 int bot_send_msg(telegramBot *bot, const char *chat_id,
                  const char *msg, const char *keyboard);
 

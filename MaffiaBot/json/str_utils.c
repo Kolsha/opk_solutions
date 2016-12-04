@@ -278,28 +278,3 @@ char *get_str(char *str, size_t *pos){
 
     return NULL;
 }
-
-char *frmt_str(char *one_frmt, char *one_param){
-
-    if(one_frmt == NULL || one_param == NULL){
-        return NULL;
-    }
-
-    size_t needed =  snprintf(NULL, 0, one_frmt, one_param) + 1;
-
-    char *buffer = malloc(needed);
-    if(buffer == NULL){
-        return NULL;
-    }
-
-    buffer[0] = '\0';
-
-    int sres = snprintf(buffer, needed, one_frmt, one_param);
-
-    if(sres < 0){
-        free(buffer);
-        return NULL;
-    }
-
-    return buffer;
-}

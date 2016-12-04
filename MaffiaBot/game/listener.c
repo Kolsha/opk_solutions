@@ -13,7 +13,7 @@
 #include "game/listener.h"
 #include "game/players.h"
 #include "game/logic.h"
-
+#include "game/admin_listener.h"
 
 static int check_private_cmd(char *text, Player *pl){
 
@@ -160,7 +160,7 @@ static void left_chat_member(JSONObj *from, JSONObj *chat,  JSONObj *user){
     }
 
     if(pl != NULL && pl->game == gm){
-        _Log_("%s LEFT from group: %s", pl->first_name, gm->title);
+        _Log_("%s LEFT from group: %s", pl->full_name, gm->title);
         obtain_player_left_game(gm, pl);
     }
 
@@ -250,32 +250,6 @@ static void private_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
 
 }
 
-static void admin_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
-
-    if(msg == NULL || from == NULL || chat == NULL){
-        return ;
-    }
-
-    char *from_id = json_get_str(from, "id");
-    char *chat_id = json_get_str(chat, "id");
-    if(from_id == NULL || chat_id == NULL){
-        return ;
-    }
-
-    Player *pl = get_player(from);
-    if(pl == NULL || pl->username == NULL ||
-            (strcmp(ADMIN_USERNAME, pl->username) != 0)){
-        return ;
-    }
-
-    char *text = json_get_str(msg, "text");
-    if(text == NULL || text[0] != '#'){
-        return ;
-    }
-
-    bot_send_msg(&mBot, chat_id, text, NULL);
-}
-
 static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
 
     if(msg == NULL || from == NULL || chat == NULL){
@@ -358,9 +332,9 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
 
     if(gm->inviter != pl){
 
-        _Log_("%s is not inviter", pl->first_name);
+        _Log_("%s is not inviter", pl->full_name);
 
-        char *buffer = frmt_str(MSG_ACCESS_MASK, gm->inviter->full_name);
+        char *buffer = build_request(MSG_ACCESS_MASK, gm->inviter->full_name);
         if(buffer == NULL){
             bot_send_msg(&mBot, chat_id, MSG_ACCESS, NULL);
         }else{

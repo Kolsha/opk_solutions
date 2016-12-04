@@ -21,7 +21,7 @@ static void free_players(Game *gm){
 
         Player *pl = (Player*)runner->data;
         tmp = runner->next;
-        free(tmp);
+        free(runner);
         runner = tmp;
 
         if(pl != NULL){
@@ -109,17 +109,17 @@ Game *create_game(char *chat_id, char *title){
         return NULL;
     }
 
-
-    res->chat_id = (char*)strdup(chat_id);
-    if(res->chat_id == NULL){
+    my_strcpy(res->chat_id, chat_id, MAX_ID_LEN);
+    if(res->chat_id[0] == '\0'){
         free(res);
         return NULL;
     }
-    res->title = NULL;
+
+    res->title[0] = '\0';
     res->inviter = NULL;
 
     if(title != NULL){
-        res->title = (char*)strdup(title);
+        my_strcpy(res->title, title, MAX_NAME_LEN);
     }
 
     res->num_civilian = 0;
@@ -186,13 +186,8 @@ Game *get_game(JSONObj *chat){
     //title
     {
         tmp_s = json_get_str(chat, "title");
-        tmp_s = (char*)strdup(tmp_s);
         if(tmp_s != NULL){
-            if(gm->title != NULL){
-                free(gm->title);
-            }
-            gm->title = tmp_s;
-            tmp_s = NULL;
+            my_strcpy(gm->title, tmp_s, MAX_NAME_LEN);
         }
     }
 
@@ -245,18 +240,7 @@ void free_game(Game *gm){
 
     free_players(gm);
 
-    if(gm->chat_id != NULL){
-        free(gm->chat_id);
-    }
-
-    if(gm->title != NULL)
-    {
-        free(gm->title);
-    }
-
-
     free(gm);
-    gm = NULL;
 }
 
 int now_playing(Game *gm){

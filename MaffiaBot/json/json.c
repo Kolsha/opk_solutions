@@ -85,10 +85,21 @@ static void json_free_arr(JSONObj *json){
     free(json);
 }
 
+static void json_dtor(Pointer data);
+
 void json_free(JSONObj *json){
 
-    if(json == NULL ||  json->type != JSON_OBJECT
-            || json->data == NULL){
+    if(json == NULL){
+        return ;
+    }
+
+    if(json->data == NULL){
+        free(json);
+        return ;
+    }
+
+    if(json->type != JSON_OBJECT){
+        json_dtor(json);
         return ;
     }
 
@@ -284,7 +295,7 @@ static JSONObj *json_parse_raw(char *json, size_t *start){
         set_error(2);
         return NULL;
     }
-    HashTable *ht = create_HashTable(50, NULL,&json_dtor);
+    HashTable *ht = create_HashTable(50, NULL, &json_dtor);
     if(ht == NULL){
         set_error(1);
         return NULL;
@@ -342,6 +353,9 @@ static JSONObj *json_parse_raw(char *json, size_t *start){
                 free(key);
                 json_free(res);
                 set_error(1);
+                if(tmp != NULL){
+                    json_free(tmp);
+                }
                 return NULL;
             }
             free(key);

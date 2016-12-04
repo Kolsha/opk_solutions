@@ -13,7 +13,7 @@ Player *create_player();
 
 int userIsMe(JSONObj *user);
 
-char *gen_player_name(Player *pl);
+char *gen_player_name(char *first_name, char *username);
 
 void loose_player(Player *pl);
 
@@ -38,5 +38,9 @@ Player *get_rand_player(Game *gm);
 char *get_player_statistic(Player *pl);
 
 void save_players();
+
+void read_players();
+
+void player_send_msg(Player *pl, char *msg, char *fail_msg);
 
 #endif

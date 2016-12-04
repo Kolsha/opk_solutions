@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -64,7 +65,6 @@ Player *create_player(){
         res->action = pa_none;
         res->victim = NULL;
         res->balance = START_BALANCE;
-        res->first_name = NULL;
         res->game = NULL;
         res->flag = pf_none;
         res->role = pr_none;
@@ -74,9 +74,9 @@ Player *create_player(){
         res->statistic.num_deaths = 0;
         res->statistic.games = 0;
         res->state = ps_created;
-        res->username = NULL;
-        res->user_id = NULL;
-        res->full_name = NULL;
+        res->username[0] = '\0';
+        res->user_id[0] = '\0';
+        res->full_name[0] = '\0';
         res->votes = 0;
         res->hide = 0;
     }
@@ -90,18 +90,6 @@ void free_player(Player *pl){
         return ;
     }
 
-    if(pl->first_name != NULL){
-        free(pl->first_name);
-    }
-    if(pl->full_name != NULL){
-        free(pl->full_name);
-    }
-    if(pl->username != NULL){
-        free(pl->username);
-    }
-    if(pl->user_id != NULL){
-        free(pl->user_id);
-    }
     free(pl);
 }
 
@@ -111,12 +99,13 @@ Player *get_player(JSONObj *user){
         return NULL;
     }
 
-    char *tmp_s, *id, *first_name, *username;
+    char *id, *first_name, *username;
 
 
     id = json_get_str(user, "id");
 
-    if(id == NULL || strcmp(id, mBot.id) == 0){
+    if(id == NULL ||
+            (mBot.id != NULL && strcmp(id, mBot.id) == 0)){
         return NULL;
     }
 
@@ -125,51 +114,24 @@ Player *get_player(JSONObj *user){
         pl = create_player();
     }
 
-    //Update first_name
-    {
 
-        first_name  = json_get_str(user,"first_name");
-        if(first_name != NULL &&
-                (tmp_s = (char*)strdup(first_name)) != NULL){
-            if(pl->first_name != NULL){
-                free(pl->first_name);
-            }
-            pl->first_name = tmp_s;
-            tmp_s = NULL;
-        }
+    first_name = json_get_str(user,"first_name");
+
+    username  = json_get_str(user, "username");
+    if(username != NULL){
+        my_strcpy(pl->username, username, MAX_NAME_LEN);
     }
 
-    //Update username
+    char *full_name = gen_player_name(first_name, username);
+    if(full_name != NULL)
     {
-        username  = json_get_str(user, "username");
-        if(username != NULL &&
-                (tmp_s = (char*)strdup(username)) != NULL){
-            if(pl->username != NULL){
-                free(pl->username);
-            }
-            pl->username = tmp_s;
-            tmp_s = NULL;
-        }
+        my_strcpy(pl->full_name, full_name, MAX_FNAME_LEN);
+        free(full_name);
     }
 
-    //Update full_name
-    {
-        char *full_name = gen_player_name(pl);
-        if(full_name != NULL)
-        {
-            if(pl->full_name != NULL)
-            {
-                free(pl->full_name);
-            }
-            pl->full_name = full_name;
-            //bot_send_msg(&mBot, "287129494", pl->full_name, NULL);
-        }
-
-    }
-
-    if(pl->user_id == NULL){
-        pl->user_id = (char*) strdup(id);
-        if(pl->user_id == NULL){
+    if(pl->user_id[0] == '\0'){
+        my_strcpy(pl->user_id, id, MAX_ID_LEN);
+        if(pl->user_id == '\0'){
             free_player(pl);
             return NULL;
         }
@@ -235,7 +197,7 @@ Player *insert_player(char *chat_id, JSONObj *user){
 
         _Log_("%s already in group: %s", pl->full_name, pl->game->title);
 
-        char *buffer = frmt_str(MSG_NEW_MEMBER_BAD_MASK, pl->full_name);
+        char *buffer = build_request(MSG_NEW_MEMBER_BAD_MASK, pl->full_name);
 
         if(buffer == NULL){
             bot_send_msg(&mBot, chat_id, MSG_NEW_MEMBER_BAD, NULL);
@@ -244,19 +206,22 @@ Player *insert_player(char *chat_id, JSONObj *user){
             free(buffer);
         }
         return NULL;
+
+    }else{
+        pl->game = gm;
     }
 
     return pl;
 }
 
 
-char *gen_player_name(Player *pl){
+char *gen_player_name(char *first_name, char *username){
 
-    if(pl == NULL){
+    if(first_name == NULL){
         return NULL;
     }
-    size_t len1 = my_strlen(pl->first_name);
-    size_t len2 = my_strlen(pl->username);
+    size_t len1 = my_strlen(first_name);
+    size_t len2 = my_strlen(username);
 
     if(len1  < 1 && len2 < 1){
         return (char*) strdup(BAD_USERNAME);
@@ -270,11 +235,11 @@ char *gen_player_name(Player *pl){
     res[len - 1] = '\0';
 
     if(len1 > 0){
-        strcpy(res, pl->first_name);
+        strcpy(res, first_name);
     }
     if(len2 > 0){
         strcat(res, "(@");
-        strcat(res, pl->username);
+        strcat(res, username);
         strcat(res, ")");
     }
     return res;
@@ -338,7 +303,7 @@ Player *get_rand_player(Game *gm){
     while(runner != NULL){
         pl = (Player*)runner->data;
         runner = runner->next;
-        if(pl == NULL || pl->user_id == NULL
+        if(pl == NULL || pl->user_id[0] == '\0'
                 || pl->state != ps_player){
             continue;
         }
@@ -367,10 +332,72 @@ char *get_player_statistic(Player *pl){
 
 static void read_player_from_file(char *fn){
 
-    if(fn == NULL || fn[0] == '.'){
+    if(fn == NULL || !isdigit(fn[0])){
         return ;
     }
 
+    Player *pl = create_player();
+    if(pl == NULL){
+        return ;
+    }
+
+    char *path = my_strcat(PLAYERS_DIR, fn);
+    if(path == NULL){
+        _Log_("Can't make path to file");
+        return ;
+    }
+
+    FILE *file = fopen(path, "rb");
+    free(path);
+
+    if(file != NULL){
+        fread(pl, sizeof(struct tPlayer), 1, file);
+        fclose(file);
+        loose_player(pl);
+        if(strcmp(fn, pl->user_id) != 0){
+            free_player(pl);
+            return ;
+        }
+
+        _Log_("Read: %s", pl->full_name);
+
+        assert(ht_set(players, pl->user_id, pl));
+
+    }else{
+        _Log_("Can't read from file");
+    }
+
+}
+
+static int save_players_traverse(char *key, Pointer data, Pointer extra_data){
+
+    if(key == NULL || data == NULL){
+        return 1;
+    }
+
+    Player *pl = (Player*)data;
+    if(pl->user_id[0] == '\0'){
+        return 1;
+    }
+
+    char *path = my_strcat(PLAYERS_DIR, pl->user_id);
+    if(path == NULL){
+        _Log_("Can't make path to file");
+        return 1;
+    }
+
+    FILE *file = fopen(path, "wb");
+    free(path);
+
+    if(file != NULL){
+        fwrite(pl, sizeof(struct tPlayer), 1, file);
+        fclose(file);
+        _Log_("Written");
+    }else{
+        _Log_("Can't write to file");
+    }
+
+    return 1;
 }
 
 void save_players(){
@@ -387,43 +414,37 @@ void save_players(){
         return ;
     }
 
+    ht_traverse(players, &save_players_traverse, NULL);
+
+}
+
+void read_players(){
+
     DIR *dir;
     struct dirent *ent;
+
     if ((dir = opendir(PLAYERS_DIR)) != NULL){
         while ((ent = readdir (dir)) != NULL) {
 
             if(ent->d_name != NULL && ent->d_name[0] != '.'
                     && ent->d_type == 8){
-                _Log_("%s", ent->d_name);
                 read_player_from_file(ent->d_name);
             }
         }
         closedir (dir);
     }
-
-    Player *pl = create_player();
-    char *path = my_strcat(PLAYERS_DIR, "#12345");
-    if(path == NULL){
-        return ;
-    }
-    /*FILE *file= fopen(path, "rb");
-    if (file != NULL) {
-        fread(pl, sizeof(struct tPlayer), 1, file);
-        fclose(file);
-    }*/
-
-    pl->username = strdup("Test");
-    pl->first_name = strdup("First");
-
-    FILE *file = fopen(path, "w");
-    if (file != NULL){
-
-        ///fscanf(file, "%s\n", )
-        fwrite(pl, sizeof(struct tPlayer), 1, file);
-        fclose(file);
-        _Log_("Written");
-    }
-    free(path);
-
 }
 
+void player_send_msg(Player *pl, char *msg, char *fail_msg){
+    if(pl == NULL || msg == NULL
+            || pl->user_id[0] == '\0'){
+        return ;
+    }
+    char *keyboard = (pl->action == pa_wait_answer) ? "" : NULL;
+    int res = bot_send_msg(&mBot, pl->user_id, msg, keyboard);
+    if(res < 0 && fail_msg != NULL
+            && pl->game != NULL
+            && pl->game->chat_id[0] != '\0'){
+        bot_send_msg(&mBot, pl->game->chat_id, fail_msg, keyboard);
+    }
+}

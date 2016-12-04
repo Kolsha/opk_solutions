@@ -15,18 +15,22 @@ static int send_vote(Game *gm);
 int game_process();
 
 static void scan_players(Game *gm){
-    if(gm == NULL || gm->chat_id == NULL){
+
+    if(gm == NULL || gm->chat_id[0] == '\0'){
         return ;
     }
+
     JSONObj *js = bot_get_chat_admins(&mBot, gm->chat_id), *res = NULL;
     if(js == NULL){
         return ;
     }
+
     res = json_get(js, "result");
     if(res == NULL){
         json_free(js);
         return ;
     }
+
     JSONList *runner = json_arr_list(res);
     while(runner != NULL){
         JSONObj *user = (JSONObj*) runner->data;
@@ -40,39 +44,56 @@ static void scan_players(Game *gm){
     json_free(js);
 }
 
+static void game_dtor(Pointer data){
+
+    if(data != NULL){
+        free_game((Game*)data);
+    }
+}
+
+static void player_dtor(Pointer data){
+
+    if(data != NULL){
+        free_player((Player*)data);
+    }
+}
+
+
 int RunGame(char *token){
 
     srand(time(NULL));
-
-
     //Init
     {
+        bot_clear(&mBot);
         mBot.token = (char*) strdup(token);
-        mBot.update_id = NULL;
         if(!bot_check(&mBot)){
             _Log_("Bad token for Bot. Exit.");
             return 0;
         }
 
-        players =  create_HashTable(START_PLAYERS_SIZE, NULL, NULL);
+        players =  create_HashTable(START_PLAYERS_SIZE, NULL, player_dtor);
         if(players == NULL){
             _Log_(MSG_MEMORY_ERROR);
             return 0;
         }
 
-        games =  create_HashTable(START_GAMES_SIZE, NULL, NULL);
+        games =  create_HashTable(START_GAMES_SIZE, NULL, game_dtor);
         if(games == NULL){
             _Log_(MSG_MEMORY_ERROR);
             ht_destroy(players);
             return 0;
         }
+        read_players();
     }
 
     time_t last_bot = 0;
     time_t last_gmp = 0;
+    time_t last_save = 0;
     time_t now = time(NULL);
-    for(;;){
+
+    while(mBot.valid){
         int res = 0;
+
         if((now - last_bot) > BOT_TIMEOUT)
         {
             res = bot_obtain_updates(&mBot, &botListener);
@@ -82,20 +103,30 @@ int RunGame(char *token){
             }
             last_bot = now;
         }
+
         if((now - last_gmp) > GMP_TIMEOUT){
             res = game_process();
             last_gmp = now;
         }
+
+        if((now - last_save) > SAVE_TIMEOUT){
+            save_players();
+            last_save = now;
+        }
+
         now = time(NULL);
     }
 
+    return 0;
 }
 
 void obtain_player_left_game(Game *gm, Player *pl){
+
     if(pl == NULL || gm == NULL ||
             pl->game != gm){
         return ;
     }
+
     int role = pl->role;
     loose_player(pl);
 
@@ -138,7 +169,7 @@ void start_game(Game *gm){
     char *maff_info_mask = "Your partners:\n";
     char *tmp = NULL;
     Player *pl = NULL;
-    if(gm == NULL || gm->players == NULL){
+    if(gm == NULL){
         bot_send_msg(&mBot, gm->chat_id, MSG_ERROR, NULL);
         return ;
     }
@@ -150,7 +181,7 @@ void start_game(Game *gm){
 
     scan_players(gm);
 
-    if(gm->num_players < MIN_PLAYERS_COUNT){
+    if(gm->num_players < MIN_PLAYERS_COUNT || gm->players == NULL){
 
         set_game_state(gm, gs_players_waiting);
         bot_send_msg(&mBot, gm->chat_id, MSG_FEW_PLAYERS, NULL);
@@ -257,6 +288,7 @@ void start_game(Game *gm){
                     free(buffer);
                 }
             }
+
             pl->action = (pa_none);
             pl->state = ps_player;
             pl->game = gm;
@@ -265,7 +297,7 @@ void start_game(Game *gm){
         }
 
 
-        if(gm->num_maffia > 1){
+        if(gm->num_maffia > 1 && maff_list_str != NULL){
             tmp = my_strcat(maff_info_mask, maff_list_str);
             if(tmp != NULL){
                 runner = gm->players;
@@ -289,18 +321,19 @@ void start_game(Game *gm){
     }
 
     set_game_state(gm, gs_vote);
+
     char *tm = NULL;
     char *msg = NULL;
+
     if(send_vote(gm)){
         set_game_state(gm, gs_night);
         tm = get_time_left(gm);
-        msg = frmt_str(MSG_NIGHT_STARTED, tm);
+        msg = build_request(MSG_NIGHT_STARTED, tm);
         bot_send_msg(&mBot, gm->chat_id, msg, NULL);
-    }
-    else{
+    }else{
         set_game_state(gm, gs_day);
         tm = get_time_left(gm);
-        msg = frmt_str(MSG_GAME_STARTED, tm);
+        msg = build_request(MSG_GAME_STARTED, tm);
         bot_send_msg(&mBot, gm->chat_id, msg, NULL);
     }
 
@@ -370,7 +403,7 @@ static int players_process(Game *gm){
         Player *victim = NULL;
         runner = runner->next;
 
-        if(pl == NULL || pl->user_id == NULL
+        if(pl == NULL || pl->user_id[0] == '\0'
                 || pl->state != ps_player){
             continue;
         }
@@ -490,7 +523,7 @@ static int players_process(Game *gm){
 
         pl = (Player*)runner->data;
         runner = runner->next;
-        if(pl == NULL || pl->user_id == NULL
+        if(pl == NULL || pl->user_id[0] == '\0'
                 || pl->state != ps_player){
             continue;
         }
@@ -498,7 +531,7 @@ static int players_process(Game *gm){
         if(gm->state == gs_night){
             if(pl->flag == pf_killed && pl->state == ps_player){
                 killed = 1;
-                char *buffer = frmt_str(MSG_KILLED_MASK, pl->full_name);
+                char *buffer = build_request(MSG_KILLED_MASK, pl->full_name);
 
                 if(buffer == NULL){
                     bot_send_msg(&mBot, gm->chat_id, MSG_KILLED, NULL);
@@ -525,7 +558,7 @@ static int players_process(Game *gm){
                 if(pl->role == pr_maniac){
                     gm->has_maniac = 0;
                 }
-            } else{
+            }else{
 
                 if(pl != doctor_victim && pl == whore_victim){
                     pl->flag = pf_enjoy;
@@ -550,7 +583,7 @@ static int players_process(Game *gm){
 
     }
     if(gm->state == gs_vote){
-        char *buffer = frmt_str(MSG_KILLED_MASK, voted_player->full_name);
+        char *buffer = build_request(MSG_KILLED_MASK, voted_player->full_name);
 
         if(buffer == NULL){
             bot_send_msg(&mBot, gm->chat_id, MSG_KILLED, NULL);
@@ -598,7 +631,7 @@ static int send_vote(Game *gm){
     while(runner != NULL){
         Player *pl = (Player*)runner->data;
         runner = runner->next;
-        if(pl == NULL || pl->user_id == NULL
+        if(pl == NULL || pl->user_id[0] == '\0'
                 || pl->state != ps_player){
             continue;
         }
@@ -633,7 +666,7 @@ static int send_vote(Game *gm){
     while(runner != NULL){
         Player *pl = (Player*)runner->data;
         runner = runner->next;
-        if(pl == NULL || pl->user_id == NULL
+        if(pl == NULL || pl->user_id[0] == '\0'
                 || pl->state != ps_player){
             continue;
         }
@@ -669,7 +702,7 @@ static int gm_process_traverse(char *key, Pointer data, Pointer extra_data){
     }
 
     Game *gm = (Game*)data;
-    if(gm->players == NULL || gm->chat_id == NULL ||
+    if(gm->players == NULL || gm->chat_id[0] == '\0' ||
             !(gm->state == gs_day ||
               gm->state == gs_vote||
               gm->state == gs_night)){
@@ -694,7 +727,7 @@ static int gm_process_traverse(char *key, Pointer data, Pointer extra_data){
         if(send_vote(gm)){
             set_game_state(gm, gs_vote);
             tm = get_time_left(gm);
-            msg = frmt_str(MSG_VOTE_STARTED, tm);
+            msg = build_request(MSG_VOTE_STARTED, tm);
             bot_send_msg(&mBot, gm->chat_id, msg, NULL);
         }
         return 1;
@@ -703,7 +736,7 @@ static int gm_process_traverse(char *key, Pointer data, Pointer extra_data){
         if(players_process(gm)){
             set_game_state(gm, gs_day);
             tm = get_time_left(gm);
-            msg = frmt_str(MSG_DAY_STARTED, tm);
+            msg = build_request(MSG_DAY_STARTED, tm);
             bot_send_msg(&mBot, gm->chat_id, msg, NULL);
         }
         return 1;
@@ -712,7 +745,7 @@ static int gm_process_traverse(char *key, Pointer data, Pointer extra_data){
         if(players_process(gm) && send_vote(gm)){
             set_game_state(gm, gs_night);
             tm = get_time_left(gm);
-            msg = frmt_str(MSG_NIGHT_STARTED, tm);
+            msg = build_request(MSG_NIGHT_STARTED, tm);
             bot_send_msg(&mBot, gm->chat_id, msg, NULL);
             gm->round++;
         }
