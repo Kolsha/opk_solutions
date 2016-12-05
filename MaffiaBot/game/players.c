@@ -30,9 +30,11 @@ int userIsMe(JSONObj *user){
 }
 
 void reset_player(Player *pl){
+
     if(pl == NULL){
         return ;
     }
+
     pl->votes = 0;
     pl->hide = 0;
     pl->action = (pa_none);
@@ -209,6 +211,17 @@ Player *insert_player(char *chat_id, JSONObj *user){
 
     }else{
         pl->game = gm;
+        if(jfind_list(gm->players, pl) == NULL){
+            JSONList *tmp = jcreate_list(pl, gm->players);
+            if(tmp != NULL){
+                gm->players = tmp;
+                gm->num_players++;
+            }
+            else{
+                //catch error
+            }
+        }
+        _Log_("%s join to group: %s", pl->full_name, gm->title);
     }
 
     return pl;
@@ -220,12 +233,14 @@ char *gen_player_name(char *first_name, char *username){
     if(first_name == NULL){
         return NULL;
     }
+
     size_t len1 = my_strlen(first_name);
     size_t len2 = my_strlen(username);
 
     if(len1  < 1 && len2 < 1){
         return (char*) strdup(BAD_USERNAME);
     }
+
     size_t len = len1 + len2 + ((len2 > 0) ? 4 : 1);
 
     char *res = (char*)malloc(len * sizeof(char));
@@ -237,11 +252,13 @@ char *gen_player_name(char *first_name, char *username){
     if(len1 > 0){
         strcpy(res, first_name);
     }
+
     if(len2 > 0){
         strcat(res, "(@");
         strcat(res, username);
         strcat(res, ")");
     }
+
     return res;
 }
 
@@ -250,6 +267,7 @@ char *get_player_role(Player *pl){
     if(pl == NULL){
         return BAD_USERNAME;
     }
+
     switch(pl->role){
     case pr_civilian:
         return "Civilian";
@@ -266,6 +284,7 @@ char *get_player_role(Player *pl){
     default:
         return BAD_USERNAME;
     }
+
     return BAD_USERNAME;
 }
 
@@ -289,6 +308,7 @@ char *get_player_night_action(Player *pl){
     default:
         return NULL;
     }
+
     return NULL;
 }
 
@@ -307,12 +327,13 @@ Player *get_rand_player(Game *gm){
                 || pl->state != ps_player){
             continue;
         }
-        if(mRand(1, 2) == mRand(1, 2)){
+        if(mRand(1, 2) == mRand(1, 3)){
             return pl;
         }
     }
 
     pl = (Player*)gm->players->data;
+
     return pl;
 }
 
@@ -324,6 +345,7 @@ char *get_player_statistic(Player *pl){
     char *res = build_request(PLAYER_STAT, pl->statistic.as_civilian,
                               pl->statistic.as_maniac, pl->statistic.as_maniac,
                               pl->statistic.num_deaths, pl->balance);
+
     return res;
 }
 
@@ -392,7 +414,6 @@ static int save_players_traverse(char *key, Pointer data, Pointer extra_data){
     if(file != NULL){
         fwrite(pl, sizeof(struct tPlayer), 1, file);
         fclose(file);
-        _Log_("Written");
     }else{
         _Log_("Can't write to file");
     }
@@ -416,6 +437,8 @@ void save_players(){
 
     ht_traverse(players, &save_players_traverse, NULL);
 
+    _Log_("Saved");
+
 }
 
 void read_players(){
@@ -436,10 +459,12 @@ void read_players(){
 }
 
 void player_send_msg(Player *pl, char *msg, char *fail_msg){
+
     if(pl == NULL || msg == NULL
             || pl->user_id[0] == '\0'){
         return ;
     }
+
     char *keyboard = (pl->action == pa_wait_answer) ? "" : NULL;
     int res = bot_send_msg(&mBot, pl->user_id, msg, keyboard);
     if(res < 0 && fail_msg != NULL
@@ -447,4 +472,5 @@ void player_send_msg(Player *pl, char *msg, char *fail_msg){
             && pl->game->chat_id[0] != '\0'){
         bot_send_msg(&mBot, pl->game->chat_id, fail_msg, keyboard);
     }
+
 }

@@ -290,10 +290,10 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
                     pl->role = pr_none;
                     pl->state = ps_watcher;
                 }
-
+              bot_send_msg(&mBot, chat_id, MSG_JOINED, NULL);
             }
         }else{
-            bot_send_msg(&mBot, chat_id, "You are not in the game, use /join", NULL);
+            bot_send_msg(&mBot, chat_id, MSG_NEED_JOIN, NULL);
         }
         return ;
     }

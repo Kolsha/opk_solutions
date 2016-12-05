@@ -148,14 +148,13 @@ char *utf16s_to_utf8b(char *utf16s){
                 {
                     codepoint = codepoint | ((tail & 0x3FF));
                     codepoint = (codepoint + 0x10000);
-                    //printf("%X\n", codepoint);
                     utf8b = codepoint_to_utf8b(codepoint);
                 }
             }
 
             if(utf8b != NULL){
+
                 size_t utf8_len = strlen(utf8b);
-                //printf("%s\n", utf8b);
                 if(utf8_len > 0){
                     if((res_len <= res_pos) ||
                             (res_len - res_pos) < utf8_len){

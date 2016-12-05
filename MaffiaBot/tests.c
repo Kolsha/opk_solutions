@@ -114,6 +114,13 @@ void RunTests(){
     JsonTest();
     mHttpTest();
     Utf8Test();
+
+    /* this code breaks code-format
+    char abc[10];
+    int i, n = 1;
+    abc[i = n] = 'a';
+    */
+
     _Log_("All test passed!");
 
 }

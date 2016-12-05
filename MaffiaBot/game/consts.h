@@ -112,6 +112,8 @@
 #define MSG_ACCESS_MASK "\u26A0 Only %s can manage game =P"
 #define MSG_ROLE_SEND_FAIL "\u26A0 I can't send role, use /role in private chat"
 #define MSG_ROLE_SEND_FAIL_MASK "\u26A0 %s i can't send your role, ask me himself /role in private chat ;)"
+#define MSG_NEED_JOIN "You are not in the game, use /join"
+#define MSG_JOINED "You are joined"
 /*********GAME-MSGS******/
 
 
