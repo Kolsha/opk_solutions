@@ -5,5 +5,5 @@
 
 void admin_message(JSONObj *msg, JSONObj *from, JSONObj *chat);
 
-#endif // ADMIN_LISTENER_H
+#endif
 

@@ -1,12 +1,15 @@
 #ifndef mJSON_H
 #define mJSON_H
+
 #include <stdlib.h>
 
-typedef void * Pointer;
+typedef void *Pointer;
 
 typedef struct tJSONList{
+
     Pointer data;
     struct tJSONList *next;
+
 } JSONList;
 
 
@@ -23,8 +26,10 @@ typedef enum
 json_type;
 
 typedef struct tJSONObj{
+
     json_type type;
     Pointer data;
+
 } JSONObj;
 
 JSONObj *J_TRUE, *J_NULL, *J_FALSE;
@@ -46,8 +51,6 @@ void json_arr_foreach(JSONObj *json,
 JSONList *json_arr_list(JSONObj *json);
 
 void json_free(JSONObj *json);
-
-
 
 char *json_error();
 

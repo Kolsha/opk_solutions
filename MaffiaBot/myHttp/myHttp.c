@@ -28,7 +28,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 
     if(memory == NULL) {
         mHttp.error_num = 3;
-        _Log_("not enough memory (realloc returned NULL)\n");
+        _Log_("not enough memory (realloc returned NULL)");
         return 0;
     }
     mem->memory = memory;
@@ -36,18 +36,19 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
     memcpy(&(mem->memory[mem->size]), contents, realsize);
     mem->size += realsize;
     mem->memory[mem->size] = 0;
+
     return realsize;
 }
 
 
 int http_init()
 {
-    mHttp.state = 1;
+    mHttp.state = (curl_global_init(CURL_GLOBAL_DEFAULT) == CURLE_OK);
     mHttp.error_num = -1;
     chunk.memory = NULL;
     chunk.size = 0;
 
-    return (curl_global_init(CURL_GLOBAL_DEFAULT) == CURLE_OK);
+    return mHttp.state;
 }
 
 void http_free(){

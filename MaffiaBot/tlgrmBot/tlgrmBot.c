@@ -49,17 +49,21 @@ char *genKeyboard(char *prefix, char **arr, size_t size){
         if(tmp != NULL){
             text = tmp;
         }
+
         if(buffer == NULL){
             continue;
         }
+
         if((i + 1) >= size){
             needed -= 1;
         }
+
         sres = snprintf(buffer, needed, KeyboardButton, text);
         if(sres < 0){
             free(buffer);
             continue;
         }
+
         if(res == NULL){
             tmp = my_strcat("", buffer);
         }
@@ -71,11 +75,13 @@ char *genKeyboard(char *prefix, char **arr, size_t size){
         if(tmp == NULL){
             continue;
         }
+
         if(res != NULL){
             free(res);
         }
         res = tmp;
     }
+
     if(all_len == 0){
         return NULL;
     }
@@ -98,7 +104,6 @@ char *genKeyboard(char *prefix, char **arr, size_t size){
         return NULL;
     }
     res = buffer;
-
 
     return res;
 }
@@ -142,12 +147,12 @@ int bot_check(telegramBot *bot){
     JSONObj *json = json_parse(res), *result;
     free(res);
 
-    if(request_is_ok(json) != tALL_OK || !json_has(json, "result")){
+    if(request_is_ok(json) != tALL_OK ||
+            (result = json_get(json, "result")) == NULL){
         json_free(json);
         return 0;
     }
 
-    result = json_get(json, "result");
     bot->username = (char*)strdup((char*)json_get(result, "username")->data);
     bot->first_name = (char*)strdup((char*)json_get(result, "first_name")->data);
     bot->id = (char*)strdup((char*)json_get(result, "id")->data);
@@ -171,7 +176,14 @@ int bot_send_msg(telegramBot *bot, const char *chat_id,
     }
 
     const char *params_mask = "chat_id=%s&text=%s&reply_markup=%s&parse_mode=HTML";
-    char *msg_e = curl_escape(msg, strlen(msg));
+
+    char *msg_e = NULL;
+    if(msg != NULL){
+        msg_e = curl_escape(msg, strlen(msg));
+    }else{
+        msg_e = (char*)strdup("");
+    }
+
     if(msg_e == NULL){
         return 0;
     }
@@ -181,6 +193,7 @@ int bot_send_msg(telegramBot *bot, const char *chat_id,
         free(msg_e);
         return 0;
     }
+
     char *keyboard_e = NULL;
 
     if(keyboard != NULL){
@@ -309,9 +322,10 @@ static int json_foreach(JSONObj *obj, Pointer func){
     if(obj == NULL || func == NULL){
         return 1;
     }
-    UpdateListener f = func;
 
-    return f(obj);
+    UpdateListener _function = func;
+
+    return _function(obj);
 }
 
 int bot_obtain_updates(telegramBot *bot, UpdateListener func){

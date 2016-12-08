@@ -1,5 +1,6 @@
 #ifndef STR_UTILS_H
 #define STR_UTILS_H
+
 #include <stdlib.h>
 #include <time.h>
 

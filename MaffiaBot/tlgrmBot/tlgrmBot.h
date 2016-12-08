@@ -1,7 +1,9 @@
 #ifndef TELEGRAM_BOT_H
 #define TELEGRAM_BOT_H
+
 #include <stdlib.h>
 #include <time.h>
+
 #include "json/json.h"
 
 #define tALL_OK 200

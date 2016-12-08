@@ -1,5 +1,6 @@
 #ifndef MY_HTTP_H
 #define MY_HTTP_H
+
 #include <stdlib.h>
 
 #define HEADER_LINE_LEN 512

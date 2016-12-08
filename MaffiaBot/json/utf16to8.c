@@ -4,27 +4,15 @@
 
 #include "utf16to8.h"
 
-static void print_bits(unsigned num){
-
-    for(int c = 31; c >= 0; c--){
-        int bit = (num >> c) & 1;
-        printf("%d", bit);
-    }
-
-    printf("\n");
-}
-
 char *codepoint_to_utf8b(unsigned cp){
-    /*
- * http://stackoverflow.com/questions/6240055/manually-converting-unicode-codepoints-into-utf-8-and-utf-16
- */
+
     if(cp == 0){
-        return strdup("\x0");
+        return (char*)strdup("\x0");
     }
 
-    int i;
-    for(i = 31; i >= 0;i--){
-        if( ((cp >> i) & 1) == 1)
+    int pos_non_zero_bit;
+    for(pos_non_zero_bit = 31; pos_non_zero_bit >= 0; pos_non_zero_bit--){
+        if( ((cp >> pos_non_zero_bit) & 1) == 1)
         {
             break;
         }
@@ -32,28 +20,28 @@ char *codepoint_to_utf8b(unsigned cp){
 
     unsigned res = 0;
 
-    if(i <= 6){
+    if(pos_non_zero_bit <= 6){
         res = cp;
-    }else if(i <= 10){
+    }else if(pos_non_zero_bit <= 10){
         res = 0b00000000000000001100000010000000;
-    }else if(i <= 15){
+    }else if(pos_non_zero_bit <= 15){
         res = 0b00000000111000001000000010000000;
     }else{
         res = 0b11110000100000001000000010000000;
     }
 
     int pos = 0;
-    if(i > 6){
+    if(pos_non_zero_bit > 6){
         for(int c = 0; c <= 31; c++){
             int bit = (cp >> c) & 1;
-            if(pos >= 26 || c > i){
+            if(pos >= 26 || c > pos_non_zero_bit){
                 break;
             }
             res ^= (-bit ^ res) & (1 << pos);
 
-            if(i > 6 && pos == 5){
+            if(pos_non_zero_bit > 6 && pos == 5){
                 pos += 2;
-            }else if(i > 10 && (pos == 13 || pos == 21)){
+            }else if(pos_non_zero_bit > 10 && (pos == 13 || pos == 21)){
                 pos += 2;
             }
             pos++;
@@ -62,14 +50,14 @@ char *codepoint_to_utf8b(unsigned cp){
 
     char utf8b[5] = {0};
     pos = 0;
-    for(i = 3; i >= 0; i--){
-        char byte = ((unsigned char *)(&res))[i];
+    for(pos_non_zero_bit = 3; pos_non_zero_bit >= 0; pos_non_zero_bit--){
+        char byte = ((unsigned char *)(&res))[pos_non_zero_bit];
         if(byte == 0){
             continue;
         }
         utf8b[pos++] = byte;
     }
-    return (i == 0) ? NULL : strdup(utf8b);
+    return (pos_non_zero_bit == 0) ? NULL : (char*)strdup(utf8b);
 }
 
 static unsigned get_next_surrogate(char *utf16s, size_t *pos){
@@ -108,7 +96,7 @@ char *utf16s_to_utf8b(char *utf16s){
 
     size_t len_str = strlen(utf16s);
     if(len_str < 6){// "\uFFFF"
-        return strdup(utf16s);
+        return (char*)strdup(utf16s);
     }
 
     size_t res_len = 4 * len_str / 3 + 1;
@@ -119,16 +107,11 @@ char *utf16s_to_utf8b(char *utf16s){
     res[0] = '\0';
 
     size_t res_pos = 0;
-    //size_t escapes = 0;
     size_t pos = 0;
     char cur = 0;
     char prev = 0;
     while((cur = utf16s[pos]) != 0 || prev != '\0'){
-        /*if(cur == '\\'){
-            escapes = (prev == cur) ? (escapes + 1) : 1;
-        }else{
-           escapes = 0;
-        }*/
+
         if(cur == 'u' && prev == '\\'){
             char *utf8b = NULL;
             unsigned lead = get_next_surrogate(utf16s, &pos);

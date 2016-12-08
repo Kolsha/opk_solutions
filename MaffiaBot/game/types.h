@@ -2,6 +2,7 @@
 #define GAME_TYPES_AND_CONSTS_H
 
 #include <stdlib.h>
+
 #include "json/str_utils.h"
 #include "json/json.h"
 #include "game/consts.h"

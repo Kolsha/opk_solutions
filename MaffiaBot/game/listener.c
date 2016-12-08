@@ -267,9 +267,6 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
             (text[0] != '/' && text[0] != '\\')){
         return ;
     }
-    if(text[1] == 'u'){
-        return ;
-    }
 
     Game *gm = get_game(chat);
     Player *pl = get_player(from);
