@@ -2,5 +2,6 @@
 
 int main()
 {
-    return !RunGame("bot_api_token");
+    run_tests();
+    return run_game("bot_api_token");
 }

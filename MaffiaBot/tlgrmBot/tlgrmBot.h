@@ -45,7 +45,7 @@ int request_is_ok(JSONObj *json);
 // prepared request f.e. chat_id=123&text=test%20send
 char *bot_run_api(telegramBot *bot, char *method, char *request);
 
-char *genKeyboard(char *prefix, char **arr, size_t size);
+char *gen_keyboard(char *prefix, char **arr, size_t size);
 
 int bot_obtain_updates(telegramBot *bot, UpdateListener func);
 

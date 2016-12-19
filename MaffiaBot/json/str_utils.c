@@ -154,6 +154,7 @@ void _Log_(char *frmt, ...){
     if (frmt == NULL){
         return ;
     }
+
     va_list args;
     va_start(args, frmt);
 
@@ -171,16 +172,22 @@ void _Log_(char *frmt, ...){
     if(modified == NULL){
         return ;
     }
+
     *modified = '\0';
+
     strcat(modified, prefix);
     strcat(modified, frmt);
+
     vprintf(modified, args);
     vprintf("\n", NULL);
+
     free(modified);
+
     if(now != NULL){
         free(prefix);
         free(now);
     }
+
     va_end(args);
 }
 
@@ -210,6 +217,7 @@ char get_next_type(char *str, size_t *pos){
 }
 
 int go_to_next(char *str, size_t *pos){
+
     if(str == NULL){
         return 0;
     }
@@ -230,10 +238,12 @@ char *copystr(const char *str, size_t count){
     if(str == NULL || count < 1){
         return NULL;
     }
+
     char *res = malloc((count + 1) *sizeof(char));
     if(res == NULL){
         return NULL;
     }
+
     res[count] = 0;
     for(size_t i = 0; i < count; i++){
         if(str[i] == 0){
@@ -241,6 +251,7 @@ char *copystr(const char *str, size_t count){
         }
         res[i] = str[i];
     }
+
     char *encoded = utf16s_to_utf8b(res);
     if(encoded != NULL){
         free(res);

@@ -185,6 +185,7 @@ static JSONObj *json_parse_array(char *json, size_t *start){
             next = next->next;
         }
     }
+
     json_free_arr(res);
     return NULL;
 }
@@ -192,6 +193,7 @@ static JSONObj *json_parse_array(char *json, size_t *start){
 void json_arr_foreach(JSONObj *json,
                       ForeachFunc ffunc,
                       Pointer extra_data){
+
     if(json == NULL || json->type != JSON_ARRAY
             || ffunc == NULL || json->data == NULL){
         return ;
@@ -209,6 +211,7 @@ void json_arr_foreach(JSONObj *json,
 }
 
 JSONList *json_arr_list(JSONObj *json){
+
     if(json == NULL || json->type != JSON_ARRAY
             || json->data == NULL){
         return NULL;
@@ -220,16 +223,15 @@ JSONList *json_arr_list(JSONObj *json){
 
 static JSONObj *json_parse_obj(char *json, size_t *pos){
 
-
     if(json == NULL){
         return NULL;
     }
+
     char *tmp = NULL;
     JSONObj *res = NULL;
     char type_data = get_next_type(json, pos);
 
     if(!type_data){
-
         return NULL;
     }
 
@@ -250,8 +252,7 @@ static JSONObj *json_parse_obj(char *json, size_t *pos){
         return res;
     }
     switch(type_data){
-
-    case '"':{
+    case '"':
         *pos = *pos + 1;
         tmp = get_str(json, pos);
 
@@ -259,30 +260,25 @@ static JSONObj *json_parse_obj(char *json, size_t *pos){
             return NULL;
         }
         res = create_json(JSON_STRING, tmp);
-    }
         break;
 
-    case '{':{
-
+    case '{':
         res = json_parse_raw(json, pos);
-    }
         break;
 
-    case '[':{
+    case '[':
         res = json_parse_array(json, pos);
-    }
         break;
 
     case 't':
     case 'n':
-    case 'f':{
+    case 'f':
         res = J_NULL;
         if(type_data == 't'){
             res = J_TRUE;
         } else if(type_data == 'f'){
             res = J_FALSE;
         }
-    }
         break;
     }
 
@@ -306,18 +302,15 @@ static JSONObj *json_parse_raw(char *json, size_t *start){
         set_error(1);
         return NULL;
     }
-    int json_started = 0;
 
+    int json_started = 0;
     char cur = 0;
     char prev = 0;
-
     char *key = NULL;
-
     JSONObj *tmp;
 
     while((cur = json[*start]) != 0){
         *start = *start + 1;
-
 
         if((!json_started && cur != '{') || cur == ','
                 || isspace(cur)){
@@ -332,7 +325,8 @@ static JSONObj *json_parse_raw(char *json, size_t *start){
         json_started = 1;
 
         switch(cur){
-        case '"':{
+        case '"':
+
             if(prev == '\\'){
                 break;
             }
@@ -344,8 +338,8 @@ static JSONObj *json_parse_raw(char *json, size_t *start){
                 set_error(2);
                 return NULL;
             }
-        }
             break;
+
         case ':':
             tmp = json_parse_obj(json, start);
             if(tmp == NULL || ht_set(ht, key, tmp) == NULL
@@ -366,6 +360,7 @@ static JSONObj *json_parse_raw(char *json, size_t *start){
         prev = cur;
 
     }
+
     json_free(res);
     return NULL;
 }
@@ -396,6 +391,7 @@ JSONObj *json_get(JSONObj *json, char *key){
             || json->type != JSON_OBJECT || json->data == NULL){
         return NULL;
     }
+
     HashTable *ht = (HashTable*)json->data;
     if(ht == NULL || ht->size < 1){
         return NULL;
@@ -418,6 +414,24 @@ char *json_get_str(JSONObj *json, char *key){
     }
     char *res = (char*) tmp->data;
     return res;
+}
+
+void json_destroy(){
+
+    if(J_FALSE != NULL){
+        free(J_FALSE);
+        J_FALSE = NULL;
+    }
+
+    if(J_TRUE != NULL){
+        free(J_TRUE);
+        J_TRUE = NULL;
+    }
+
+    if(J_NULL != NULL){
+        free(J_NULL);
+        J_NULL = NULL;
+    }
 }
 
 

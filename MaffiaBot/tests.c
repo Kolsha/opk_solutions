@@ -108,14 +108,14 @@ static void mHttpTest(){
 
 }
 
-void RunTests(){
+void run_tests(){
 
     HashTableTest();
     JsonTest();
     mHttpTest();
     Utf8Test();
 
-    /* this code breaks code-format
+    /* this code breaks code-format in QT
     char abc[10];
     int i, n = 1;
     abc[i = n] = 'a';

@@ -59,7 +59,7 @@ static void player_dtor(Pointer data){
 }
 
 
-int RunGame(char *token){
+int run_game(char *token){
 
     srand(time(NULL));
     //Init
@@ -67,21 +67,24 @@ int RunGame(char *token){
         bot_clear(&mBot);
         mBot.token = (char*) strdup(token);
         if(!bot_check(&mBot)){
+            bot_clear(&mBot);
             _Log_("Bad token for Bot. Exit.");
-            return 0;
+            return EXIT_MSG_BAD_BOT;
         }
 
         players =  create_HashTable(START_PLAYERS_SIZE, NULL, player_dtor);
         if(players == NULL){
+            bot_clear(&mBot);
             _Log_(MSG_MEMORY_ERROR);
-            return 0;
+            return EXIT_MSG_MEMORY;
         }
 
         games =  create_HashTable(START_GAMES_SIZE, NULL, game_dtor);
         if(games == NULL){
+            bot_clear(&mBot);
             _Log_(MSG_MEMORY_ERROR);
             ht_destroy(players);
-            return 0;
+            return EXIT_MSG_MEMORY;
         }
         read_players();
     }
@@ -96,7 +99,7 @@ int RunGame(char *token){
 
         if((now - last_bot) > BOT_TIMEOUT)
         {
-            res = bot_obtain_updates(&mBot, &botListener);
+            res = bot_obtain_updates(&mBot, &bot_listener);
             if(res != tALL_OK)
             {
                 _Log_("Code: %d", res);
@@ -144,13 +147,13 @@ void obtain_player_left_game(Game *gm, Player *pl){
         }
 
         gm->num_players = (gm->num_players > 0) ? (gm->num_players - 1) : 0;
-        if(gm->num_civilian > 0 && role != pr_maffia){
+        if(gm->num_civilian > 0 && role != PR_MAFFIA){
             gm->num_civilian--;
         }
-        if(role == pr_maffia && gm->num_maffia > 0){
+        if(role == PR_MAFFIA && gm->num_maffia > 0){
             gm->num_maffia--;
         }
-        if(role == pr_maniac){
+        if(role == PR_MANIAC){
             gm->has_maniac = 0;
         }
 
@@ -183,7 +186,7 @@ void start_game(Game *gm){
 
     if(gm->num_players < MIN_PLAYERS_COUNT || gm->players == NULL){
 
-        set_game_state(gm, gs_players_waiting);
+        set_game_state(gm, GS_PLAYERS_WAITING);
         bot_send_msg(&mBot, gm->chat_id, MSG_FEW_PLAYERS, NULL);
 
         return ;
@@ -191,12 +194,12 @@ void start_game(Game *gm){
 
     //Give roles
     {
-        char *given_roles = malloc(sizeof(char) * pr_none);
+        char *given_roles = malloc(sizeof(char) * PR_NONE);
         if(given_roles == NULL){
             bot_send_msg(&mBot, gm->chat_id, MSG_ERROR, NULL);
             return ;
         }
-        memset(given_roles, 0, pr_none);
+        memset(given_roles, 0, PR_NONE);
 
         int prev_role = -1;
         int max_bad_roles = gm->num_players - 1;
@@ -219,30 +222,30 @@ void start_game(Game *gm){
             }
 
 
-            int rnd = mRand(0, pr_none);
-            pl->role = pr_none;
-            while(pl->role == pr_none){
-                rnd = mRand(0, pr_none);
+            int rnd = mRand(0, PR_NONE);
+            pl->role = PR_NONE;
+            while(pl->role == PR_NONE){
+                rnd = mRand(0, PR_NONE);
 
                 if(prev_role != -1 && prev_role == rnd){
                     continue;
                 }
                 prev_role = rnd;
 
-                if((rnd == pr_maffia || rnd == pr_maniac)
+                if((rnd == PR_MAFFIA || rnd == PR_MANIAC)
                         && bad_roles >= max_bad_roles){
                     continue;
                 }
 
-                if(rnd == pr_maffia &&
+                if(rnd == PR_MAFFIA &&
                         given_roles[rnd] >= max_maffia_roles){
                     continue;
                 }
 
-                if(rnd != pr_civilian && rnd != pr_maffia
+                if(rnd != PR_CIVILIAN && rnd != PR_MAFFIA
                         && given_roles[rnd] > 0){
                     continue;
-                } else if(bad_roles < 1 && rnd == pr_civilian){
+                } else if(bad_roles < 1 && rnd == PR_CIVILIAN){
                     continue;
                 }
 
@@ -250,7 +253,7 @@ void start_game(Game *gm){
                 pl->role = rnd;
             }
 
-            if(pl->role != pr_maffia){
+            if(pl->role != PR_MAFFIA){
                 gm->num_civilian++;
             }else{
                 gm->num_maffia++;
@@ -270,7 +273,7 @@ void start_game(Game *gm){
                 }
             }
 
-            if(pl->role == pr_maniac){
+            if(pl->role == PR_MANIAC){
                 gm->has_maniac = 1;
                 bad_roles++;
             }
@@ -289,10 +292,10 @@ void start_game(Game *gm){
                 }
             }
 
-            pl->action = (pa_none);
-            pl->state = ps_player;
+            pl->action = (PA_NONE);
+            pl->state = PS_PLAYER;
             pl->game = gm;
-            pl->flag = pf_none;
+            pl->flag = PF_NONE;
             pl->victim = NULL;
         }
 
@@ -304,8 +307,8 @@ void start_game(Game *gm){
                 while(runner != NULL){
                     pl = (Player*)runner->data;
                     runner = runner->next;
-                    if(pl == NULL || pl->role != pr_maffia
-                            || pl->state != ps_player){
+                    if(pl == NULL || pl->role != PR_MAFFIA
+                            || pl->state != PS_PLAYER){
                         continue;
                     }
                     bot_send_msg(&mBot, pl->user_id, tmp, NULL);
@@ -320,18 +323,18 @@ void start_game(Game *gm){
         free(given_roles);
     }
 
-    set_game_state(gm, gs_vote);
+    set_game_state(gm, GS_VOTE);
 
     char *tm = NULL;
     char *msg = NULL;
 
     if(send_vote(gm)){
-        set_game_state(gm, gs_night);
+        set_game_state(gm, GS_NIGHT);
         tm = get_time_left(gm);
         msg = build_request(MSG_NIGHT_STARTED, tm);
         bot_send_msg(&mBot, gm->chat_id, msg, NULL);
     }else{
-        set_game_state(gm, gs_day);
+        set_game_state(gm, GS_DAY);
         tm = get_time_left(gm);
         msg = build_request(MSG_GAME_STARTED, tm);
         bot_send_msg(&mBot, gm->chat_id, msg, NULL);
@@ -404,12 +407,12 @@ static int players_process(Game *gm){
         runner = runner->next;
 
         if(pl == NULL || pl->user_id[0] == '\0'
-                || pl->state != ps_player){
+                || pl->state != PS_PLAYER){
             continue;
         }
-        if(pl->role == pr_civilian && gm->state == gs_night){
+        if(pl->role == PR_CIVILIAN && gm->state == GS_NIGHT){
             pl->victim = NULL;
-            pl->action = (pa_none);
+            pl->action = (PA_NONE);
             continue;
         }
 
@@ -422,10 +425,10 @@ static int players_process(Game *gm){
 
             bot_send_msg(&mBot, pl->user_id, BTN_RANDOM, NULL);
 
-            if(pl->role == pr_cop && gm->state == gs_night){
+            if(pl->role == PR_COP && gm->state == GS_NIGHT){
                 char *msg =
                         build_request("%s is %s", victim->full_name,
-                                      (victim->role == pr_maffia &&
+                                      (victim->role == PR_MAFFIA &&
                                        !victim->hide) ? "Maffia" : "Civilian");
                 bot_send_msg(&mBot, pl->user_id, msg, NULL);
                 if(msg != NULL){
@@ -437,38 +440,38 @@ static int players_process(Game *gm){
             pl->victim = victim;
         }
 
-        if(gm->state == gs_night){
+        if(gm->state == GS_NIGHT){
 
             switch(pl->role){// player do on victim
-            case pr_doctor:
-                if(victim->flag == pf_cured){
-                    victim->flag = pf_killed;
-                }else if(victim->flag == pf_enjoy){
-                    victim->flag = pf_enjoy_cured;
+            case PR_DOCTOR:
+                if(victim->flag == PF_CURED){
+                    victim->flag = PF_KILLED;
+                }else if(victim->flag == PF_ENJOY){
+                    victim->flag = PF_ENJOY_CURED;
                 }else{
-                    victim->flag = pf_cured;
+                    victim->flag = PF_CURED;
                 }
                 doctor_victim = victim;
                 break;
 
-            case pr_maniac:
-                if(victim->flag != pf_cured && victim->flag != pf_enjoy_cured){
-                    victim->flag = pf_killed;
+            case PR_MANIAC:
+                if(victim->flag != PF_CURED && victim->flag != PF_ENJOY_CURED){
+                    victim->flag = PF_KILLED;
                 }
                 break;
 
-            case pr_whore:
-                if(victim->flag == pf_none){
-                    victim->flag = pf_enjoy;
-                } else if(victim->flag == pf_cured){
-                    victim->flag = pf_enjoy_cured;
+            case PR_WHORE:
+                if(victim->flag == PF_NONE){
+                    victim->flag = PF_ENJOY;
+                } else if(victim->flag == PF_CURED){
+                    victim->flag = PF_ENJOY_CURED;
                 }
                 whore_victim = victim;
                 break;
 
-            case pr_maffia:
-                if(victim->flag != pf_killed && victim->flag != pf_cured
-                        && victim->flag != pf_enjoy_cured){
+            case PR_MAFFIA:
+                if(victim->flag != PF_KILLED && victim->flag != PF_CURED
+                        && victim->flag != PF_ENJOY_CURED){
 
                     if(voted_player == NULL){
                         voted_player = victim;
@@ -479,7 +482,7 @@ static int players_process(Game *gm){
                     }
 
                     if(voted_player->votes >= (maffia_count)){
-                        victim->flag = pf_killed;
+                        victim->flag = PF_KILLED;
                     }
                 }
                 break;
@@ -491,11 +494,11 @@ static int players_process(Game *gm){
             }
             _Log_("Night: %s[%s] choose %s[%s]", pl->full_name, get_player_role(pl),
                   victim->full_name, get_player_role(victim));
-        }else if(gm->state == gs_vote){
+        }else if(gm->state == GS_VOTE){
             _Log_("Day: %s[%s] choose %s[%s]", pl->full_name, get_player_role(pl),
                   victim->full_name, get_player_role(victim));
-            if(victim->flag == pf_enjoy ||
-                    victim->flag == pf_enjoy_cured){
+            if(victim->flag == PF_ENJOY ||
+                    victim->flag == PF_ENJOY_CURED){
                 victim->votes = 0;
                 continue;
             }
@@ -511,7 +514,7 @@ static int players_process(Game *gm){
         }
 
         pl->victim = NULL;
-        pl->action = (pa_none);
+        pl->action = (PA_NONE);
     }
 
     //------------------------------
@@ -524,12 +527,12 @@ static int players_process(Game *gm){
         pl = (Player*)runner->data;
         runner = runner->next;
         if(pl == NULL || pl->user_id[0] == '\0'
-                || pl->state != ps_player){
+                || pl->state != PS_PLAYER){
             continue;
         }
 
-        if(gm->state == gs_night){
-            if(pl->flag == pf_killed && pl->state == ps_player){
+        if(gm->state == GS_NIGHT){
+            if(pl->flag == PF_KILLED && pl->state == PS_PLAYER){
                 killed = 1;
                 char *buffer = build_request(MSG_KILLED_MASK, pl->full_name);
 
@@ -542,36 +545,36 @@ static int players_process(Game *gm){
                     free(buffer);
                 }
                 pl->statistic.num_deaths++;
-                pl->state = ps_watcher;
+                pl->state = PS_WATCHER;
                 pl->votes = 0;
 
                 if(gm->num_players > 0){
                     gm->num_players--;
                 }
 
-                if(pl->role != pr_maffia && gm->num_civilian > 0){
+                if(pl->role != PR_MAFFIA && gm->num_civilian > 0){
                     gm->num_civilian--;
                 }
-                if(pl->role == pr_maffia && gm->num_maffia > 0){
+                if(pl->role == PR_MAFFIA && gm->num_maffia > 0){
                     gm->num_maffia--;
                 }
-                if(pl->role == pr_maniac){
+                if(pl->role == PR_MANIAC){
                     gm->has_maniac = 0;
                 }
             }else{
 
                 if(pl != doctor_victim && pl == whore_victim){
-                    pl->flag = pf_enjoy;
+                    pl->flag = PF_ENJOY;
                 }else if(pl == doctor_victim && pl != whore_victim){
-                    pl->flag = pf_cured;
+                    pl->flag = PF_CURED;
                 }else if(pl == doctor_victim && pl == whore_victim){
-                    pl->flag = pf_enjoy_cured;
+                    pl->flag = PF_ENJOY_CURED;
                 } else{
-                    pl->flag = pf_none;
+                    pl->flag = PF_NONE;
                 }
             }
 
-        }else if(gm->state == gs_vote){
+        }else if(gm->state == GS_VOTE){
             if(voted_player == NULL ||
                     (voted_player != pl &&
                      pl->votes >= voted_player->votes)){
@@ -582,7 +585,7 @@ static int players_process(Game *gm){
         }
 
     }
-    if(gm->state == gs_vote){
+    if(gm->state == GS_VOTE){
         char *buffer = build_request(MSG_KILLED_MASK, voted_player->full_name);
 
         if(buffer == NULL){
@@ -593,20 +596,20 @@ static int players_process(Game *gm){
             bot_send_msg(&mBot, voted_player->user_id, buffer, NULL);
             free(buffer);
         }
-        voted_player->state = ps_watcher;
+        voted_player->state = PS_WATCHER;
         voted_player->votes = 0;
-        voted_player->flag = pf_none;
+        voted_player->flag = PF_NONE;
 
         if(gm->num_players > 0){
             gm->num_players--;
         }
-        if(voted_player->role != pr_maffia && gm->num_civilian > 0){
+        if(voted_player->role != PR_MAFFIA && gm->num_civilian > 0){
             gm->num_civilian--;
         }
-        if(voted_player->role == pr_maniac){
+        if(voted_player->role == PR_MANIAC){
             gm->has_maniac = 0;
         }
-        if(voted_player->role == pr_maffia && gm->num_maffia > 0){
+        if(voted_player->role == PR_MAFFIA && gm->num_maffia > 0){
             gm->num_maffia--;
         }
     } else if(!killed){
@@ -632,7 +635,7 @@ static int send_vote(Game *gm){
         Player *pl = (Player*)runner->data;
         runner = runner->next;
         if(pl == NULL || pl->user_id[0] == '\0'
-                || pl->state != ps_player){
+                || pl->state != PS_PLAYER){
             continue;
         }
 
@@ -653,7 +656,7 @@ static int send_vote(Game *gm){
     }
     buttons[sz++] = BTN_RANDOM;
 
-    char *keyboard = genKeyboard(CMD_VOTE, buttons, sz);
+    char *keyboard = gen_keyboard(CMD_VOTE, buttons, sz);
     for(size_t i = 0; (i + 1) < sz; i++){
         free(buttons[i]);
     }
@@ -667,16 +670,16 @@ static int send_vote(Game *gm){
         Player *pl = (Player*)runner->data;
         runner = runner->next;
         if(pl == NULL || pl->user_id[0] == '\0'
-                || pl->state != ps_player){
+                || pl->state != PS_PLAYER){
             continue;
         }
 
         int send_state = -1;
         switch(gm->state){
-        case gs_day:
+        case GS_DAY:
             send_state = bot_send_msg(&mBot, pl->user_id, MSG_VOTE_ALL, keyboard);
             break;
-        case gs_vote:
+        case GS_VOTE:
             tmp = get_player_night_action(pl);
             if(tmp != NULL){
                 send_state = bot_send_msg(&mBot, pl->user_id, tmp, keyboard);
@@ -687,7 +690,7 @@ static int send_vote(Game *gm){
         }
         if(send_state > 0){
             pl->victim = NULL;
-            pl->action = (pa_wait_answer);
+            pl->action = (PA_WAIT_ANSWER);
         }
     }
     free(keyboard);
@@ -703,9 +706,9 @@ static int gm_process_traverse(char *key, Pointer data, Pointer extra_data){
 
     Game *gm = (Game*)data;
     if(gm->players == NULL || gm->chat_id[0] == '\0' ||
-            !(gm->state == gs_day ||
-              gm->state == gs_vote||
-              gm->state == gs_night)){
+            !(gm->state == GS_DAY ||
+              gm->state == GS_VOTE||
+              gm->state == GS_NIGHT)){
         return 1;
     }
 
@@ -720,39 +723,38 @@ static int gm_process_traverse(char *key, Pointer data, Pointer extra_data){
             && gm->state_timeout > 0){
         return 1;
     }
+
     char *tm = NULL;
     char *msg = NULL;
+
     switch(gm->state){
-    case gs_day:
+    case GS_DAY:
         if(send_vote(gm)){
-            set_game_state(gm, gs_vote);
+            set_game_state(gm, GS_VOTE);
             tm = get_time_left(gm);
             msg = build_request(MSG_VOTE_STARTED, tm);
             bot_send_msg(&mBot, gm->chat_id, msg, NULL);
         }
-        return 1;
         break;
-    case gs_night:
+    case GS_NIGHT:
         if(players_process(gm)){
-            set_game_state(gm, gs_day);
+            set_game_state(gm, GS_DAY);
             tm = get_time_left(gm);
             msg = build_request(MSG_DAY_STARTED, tm);
             bot_send_msg(&mBot, gm->chat_id, msg, NULL);
         }
-        return 1;
         break;
-    case gs_vote:
+    case GS_VOTE:
         if(players_process(gm) && send_vote(gm)){
-            set_game_state(gm, gs_night);
+            set_game_state(gm, GS_NIGHT);
             tm = get_time_left(gm);
             msg = build_request(MSG_NIGHT_STARTED, tm);
             bot_send_msg(&mBot, gm->chat_id, msg, NULL);
             gm->round++;
         }
-        return 1;
         break;
     default:
-        set_game_state(gm, gs_day);
+        set_game_state(gm, GS_DAY);
         _Log_("Strange game state %d", __LINE__);
     }
 
@@ -762,6 +764,7 @@ static int gm_process_traverse(char *key, Pointer data, Pointer extra_data){
     if(msg != NULL){
         free(msg);
     }
+
     return 1;
 }
 

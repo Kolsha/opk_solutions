@@ -16,6 +16,10 @@
 
 static void free_players(Game *gm){
 
+    if(gm == NULL){
+        return ;
+    }
+
     JSONList *runner = gm->players, *tmp;
     while(runner != NULL){
 
@@ -33,8 +37,13 @@ static void free_players(Game *gm){
 
 static void reset_players(Game *gm){
 
+    if(gm == NULL){
+        return ;
+    }
+
     char *who_is_who = NULL;
     JSONList *runner = gm->players;
+
     while(runner != NULL){
 
         Player *pl = (Player*)runner->data;
@@ -42,26 +51,26 @@ static void reset_players(Game *gm){
 
         if(pl != NULL){
             if(now_playing(gm) == 1){
-                if(pl->state == ps_player){
+                if(pl->state == PS_PLAYER){
                     switch(pl->role){
-                    case pr_maffia:
+                    case PR_MAFFIA:
                         pl->statistic.as_maffia++;
                         pl->balance += 2;
                         break;
-                    case pr_maniac:
+                    case PR_MANIAC:
                         pl->statistic.as_maniac++;
                         pl->balance += 2;
                         break;
                     default:
-                        if(pl->role != pr_none){
+                        if(pl->role != PR_NONE){
                             pl->statistic.as_civilian++;
                             pl->balance += 1;
                         }
                     }
                 }
 
-                if((pl->state == ps_player || pl->state == ps_watcher)
-                        && pl->role != pr_none){
+                if((pl->state == PS_PLAYER || pl->state == PS_WATCHER)
+                        && pl->role != PR_NONE){
                     char *tmp = build_request("%s is %s\n",
                                               pl->full_name, get_player_role(pl));
                     if(tmp != NULL){
@@ -83,6 +92,7 @@ static void reset_players(Game *gm){
             pl->game = gm;
         }
     }
+
     if(who_is_who != NULL){
         char *tmp = my_strcat("Who is who:\n", who_is_who);
         if(tmp != NULL)
@@ -126,7 +136,7 @@ Game *create_game(char *chat_id, char *title){
     res->has_maniac = 0;
     res->num_maffia = 0;
     res->num_players = 0;
-    res->state = gs_created;
+    res->state = GS_CREATED;
     res->time_state = time(NULL);
     res->state_timeout = 0;
     res->players = NULL;
@@ -179,8 +189,8 @@ Game *get_game(JSONObj *chat){
         assert(ht_set(games, chat_id, gm));
     }
 
-    if(gm->state == gs_created){ // or timeout
-        set_game_state(gm, gs_none);
+    if(gm->state == GS_CREATED){ // or timeout
+        set_game_state(gm, GS_NONE);
     }
 
     //title
@@ -207,24 +217,26 @@ void reset_game(Game *gm){
     gm->num_maffia = 0;
     gm->round = 0;
     reset_players(gm);
-    set_game_state(gm, gs_none);
+    set_game_state(gm, GS_NONE);
 }
 
 void set_game_state(Game *gm, game_states gs){
+
     if(gm == NULL){
         return ;
     }
+
     gm->state = gs;
     gm->time_state = time(NULL);
 
     switch(gm->state){
-    case gs_day:
+    case GS_DAY:
         gm->state_timeout = DAY_TIMEOUT;
         break;
-    case gs_vote:
+    case GS_VOTE:
         gm->state_timeout = VOTE_TIMEOUT;
         break;
-    case gs_night:
+    case GS_NIGHT:
         gm->state_timeout = VOTE_TIMEOUT * 1.5;
         break;
     default:
@@ -250,9 +262,9 @@ int now_playing(Game *gm){
     }
 
     switch(gm->state){
-    case gs_none:
-    case gs_created:
-    case gs_players_waiting:
+    case GS_NONE:
+    case GS_CREATED:
+    case GS_PLAYERS_WAITING:
         return 0;
     default:
         return 1;
@@ -264,6 +276,7 @@ char *get_time_left(Game *gm){
     if(gm == NULL){
         return NULL;
     }
+
     char *tm = frmt_time(gm->state_timeout - (time(NULL) - gm->time_state));
 
     return tm;

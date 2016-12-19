@@ -13,7 +13,7 @@ HashTable *players;
 
 Player *create_player();
 
-int userIsMe(JSONObj *user);
+int user_is_me(JSONObj *user);
 
 char *gen_player_name(char *first_name, char *username);
 

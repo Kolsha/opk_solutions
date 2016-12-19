@@ -58,4 +58,6 @@ JSONList *jcreate_list(Pointer data, JSONList *next);
 
 JSONList *jfind_list(JSONList *head, Pointer data);
 
+void json_destroy();
+
 #endif

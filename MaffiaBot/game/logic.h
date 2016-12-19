@@ -10,6 +10,6 @@ void obtain_player_left_game(Game *gm, Player *pl);
 
 void start_game(Game *gm);
 
-int RunGame(char *token);
+int run_game(char *token);
 
 #endif

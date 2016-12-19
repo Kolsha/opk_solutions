@@ -11,9 +11,6 @@
 #define MAX_URL_LEN 2000
 
 static const char *API_URL_MASK = "https://api.telegram.org/bot%s/%s?";
-static char API_URL[MAX_URL_LEN] = {0};
-static char POST_DATA[MAX_URL_LEN] = {0};
-
 static const char *KeyboardButton = "[\"%s\"],";
 static const char *ReplyKeyboardMarkup = "{\"keyboard\":[%s],\"one_time_keyboard\":true}";
 static const char *ReplyKeyboardRemove = "{\"remove_keyboard\":true}";
@@ -23,7 +20,7 @@ static int check_bot(telegramBot *bot){
 }
 
 
-char *genKeyboard(char *prefix, char **arr, size_t size){
+char *gen_keyboard(char *prefix, char **arr, size_t size){
 
     if(prefix == NULL || arr == NULL || size < 1){
         return NULL;
@@ -130,6 +127,8 @@ int bot_check(telegramBot *bot){
         return 0;
     }
 
+    char API_URL[MAX_URL_LEN] = {0};
+
     bot->valid = 0;
 
     API_URL[0] = 0;
@@ -175,6 +174,8 @@ int bot_send_msg(telegramBot *bot, const char *chat_id,
         return tBAD_DATA;
     }
 
+    char API_URL[MAX_URL_LEN] = {0};
+    char POST_DATA[MAX_URL_LEN] = {0};
     const char *params_mask = "chat_id=%s&text=%s&reply_markup=%s&parse_mode=HTML";
 
     char *msg_e = NULL;
@@ -256,6 +257,8 @@ int bot_edit_msg(telegramBot *bot, const char *chat_id, const char *msg_id,
         return tBAD_DATA;
     }
 
+    char API_URL[MAX_URL_LEN] = {0};
+    char POST_DATA[MAX_URL_LEN] = {0};
     const char *params_mask =
             "chat_id=%s&message_id=%s&text=%s&parse_mode=HTML";
     char *msg_e = curl_escape(msg, strlen(msg));
@@ -334,6 +337,8 @@ int bot_obtain_updates(telegramBot *bot, UpdateListener func){
         return tAUTH;
     }
 
+    char API_URL[MAX_URL_LEN] = {0};
+    char POST_DATA[MAX_URL_LEN] = {0};
     const char *params_mask = "offset=%s";
     char *offset = bot->update_id;
     if(offset == NULL)
@@ -395,7 +400,7 @@ char *bot_run_api(telegramBot *bot, char *method, char *request){
         return NULL;
     }
 
-    API_URL[0] = 0;
+    char API_URL[MAX_URL_LEN] = {0};
     int sres = sprintf(API_URL, API_URL_MASK, bot->token, method);
     if(strlen(API_URL) < 20 || sres < 0){
         return NULL;
@@ -414,6 +419,8 @@ JSONObj *bot_get_chat_admins(telegramBot *bot, char *chat_id){
         return NULL;
     }
 
+    char API_URL[MAX_URL_LEN] = {0};
+    char POST_DATA[MAX_URL_LEN] = {0};
     const char *params_mask = "chat_id=%s";
 
     char *chat_id_e = curl_escape(chat_id, strlen(chat_id));

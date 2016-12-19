@@ -20,7 +20,7 @@
 
 #include "myHttp/myHttp.h"
 
-int userIsMe(JSONObj *user){
+int user_is_me(JSONObj *user){
 
     if(user  == NULL || !mBot.valid){
         return 0;
@@ -37,11 +37,11 @@ void reset_player(Player *pl){
 
     pl->votes = 0;
     pl->hide = 0;
-    pl->action = (pa_none);
+    pl->action = (PA_NONE);
     pl->victim = NULL;
-    pl->flag = pf_none;
-    pl->role = pr_none;
-    pl->state = ps_none;
+    pl->flag = PF_NONE;
+    pl->role = PR_NONE;
+    pl->state = PS_NONE;
 }
 
 void loose_player(Player *pl){
@@ -64,18 +64,18 @@ Player *create_player(){
 
     //Set New Player default
     {
-        res->action = pa_none;
+        res->action = PA_NONE;
         res->victim = NULL;
         res->balance = START_BALANCE;
         res->game = NULL;
-        res->flag = pf_none;
-        res->role = pr_none;
+        res->flag = PF_NONE;
+        res->role = PR_NONE;
         res->statistic.as_civilian = 0;
         res->statistic.as_maffia = 0;
         res->statistic.as_maniac = 0;
         res->statistic.num_deaths = 0;
         res->statistic.games = 0;
-        res->state = ps_created;
+        res->state = PS_CREATED;
         res->username[0] = '\0';
         res->user_id[0] = '\0';
         res->full_name[0] = '\0';
@@ -87,10 +87,6 @@ Player *create_player(){
 }
 
 void free_player(Player *pl){
-
-    if(pl == NULL){
-        return ;
-    }
 
     free(pl);
 }
@@ -172,10 +168,10 @@ Player *insert_player(char *chat_id, JSONObj *user){
         return NULL;
     }
 
-    if(pl->state == ps_created){
+    if(pl->state == PS_CREATED){
 
         pl->game = gm;
-        pl->state = ps_none;
+        pl->state = PS_NONE;
 
         assert(ht_set(players, pl->user_id, pl));
 
@@ -269,17 +265,17 @@ char *get_player_role(Player *pl){
     }
 
     switch(pl->role){
-    case pr_civilian:
+    case PR_CIVILIAN:
         return "Civilian";
-    case pr_cop:
+    case PR_COP:
         return "Cop";
-    case pr_doctor:
+    case PR_DOCTOR:
         return "Doctor";
-    case pr_maffia:
+    case PR_MAFFIA:
         return "Maffia";
-    case pr_maniac:
+    case PR_MANIAC:
         return "Maniac";
-    case pr_whore:
+    case PR_WHORE:
         return "Wh*re";
     default:
         return BAD_USERNAME;
@@ -295,15 +291,15 @@ char *get_player_night_action(Player *pl){
     }
 
     switch(pl->role){
-    case pr_cop:
+    case PR_COP:
         return "Who will be tested?";
-    case pr_doctor:
+    case PR_DOCTOR:
         return "Who will be cured?";
-    case pr_maffia:
+    case PR_MAFFIA:
         return "Who will be killed by the Maffia?";
-    case pr_maniac:
+    case PR_MANIAC:
         return "Who will be killed?";
-    case pr_whore:
+    case PR_WHORE:
         return "Who today has sex?";
     default:
         return NULL;
@@ -320,16 +316,20 @@ Player *get_rand_player(Game *gm){
 
     JSONList *runner = gm->players;
     Player *pl = NULL;
+
+    int num = mRand(0, gm->num_players);
+    int pos = 0;
     while(runner != NULL){
         pl = (Player*)runner->data;
         runner = runner->next;
         if(pl == NULL || pl->user_id[0] == '\0'
-                || pl->state != ps_player){
+                || pl->state != PS_PLAYER){
             continue;
         }
-        if(mRand(1, 2) == mRand(1, 3)){
+        if(num == pos){
             return pl;
         }
+        pos++;
     }
 
     pl = (Player*)gm->players->data;
@@ -343,7 +343,7 @@ char *get_player_statistic(Player *pl){
         return NULL;
     }
     char *res = build_request(PLAYER_STAT, pl->statistic.as_civilian,
-                              pl->statistic.as_maniac, pl->statistic.as_maniac,
+                              pl->statistic.as_maniac, pl->statistic.as_maffia,
                               pl->statistic.num_deaths, pl->balance);
 
     return res;
@@ -397,12 +397,15 @@ static int save_players_traverse(char *key, Pointer data, Pointer extra_data){
         return 1;
     }
 
-    Player *pl = (Player*)data;
-    if(pl->user_id[0] == '\0'){
+    Player pl = *(Player*)data;
+    if(pl.user_id[0] == '\0'){
         return 1;
     }
 
-    char *path = my_strcat(PLAYERS_DIR, pl->user_id);
+    pl.game = NULL;
+    pl.victim = NULL;
+
+    char *path = my_strcat(PLAYERS_DIR, pl.user_id);
     if(path == NULL){
         _Log_("Can't make path to file");
         return 1;
@@ -412,7 +415,7 @@ static int save_players_traverse(char *key, Pointer data, Pointer extra_data){
     free(path);
 
     if(file != NULL){
-        fwrite(pl, sizeof(struct tPlayer), 1, file);
+        fwrite(&pl, sizeof(struct tPlayer), 1, file);
         fclose(file);
     }else{
         _Log_("Can't write to file");
@@ -450,7 +453,7 @@ void read_players(){
         while ((ent = readdir (dir)) != NULL) {
 
             if(ent->d_name != NULL && ent->d_name[0] != '.'
-                    && ent->d_type == 8){
+                    && ent->d_type == 8){ // 8 - is file DT_REG
                 read_player_from_file(ent->d_name);
             }
         }
@@ -465,7 +468,7 @@ void player_send_msg(Player *pl, char *msg, char *fail_msg){
         return ;
     }
 
-    char *keyboard = (pl->action == pa_wait_answer) ? "" : NULL;
+    char *keyboard = (pl->action == PA_WAIT_ANSWER) ? "" : NULL;
     int res = bot_send_msg(&mBot, pl->user_id, msg, keyboard);
     if(res < 0 && fail_msg != NULL
             && pl->game != NULL

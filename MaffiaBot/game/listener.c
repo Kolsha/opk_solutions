@@ -23,8 +23,8 @@ static int check_private_cmd(char *text, Player *pl){
 
     if(pl->game != NULL && now_playing(pl->game)){
         if(my_strstr(text, CMD_HIDE) != NULL){
-            if(pl->role != pr_maffia ||
-                    pl->state != ps_player){
+            if(pl->role != PR_MAFFIA ||
+                    pl->state != PS_PLAYER){
                 bot_send_msg(&mBot, pl->user_id, MSG_NOT_NEED, NULL);
             }else if(pl->balance < PRICE_HIDE){
                 bot_send_msg(&mBot, pl->user_id, MSG_NEED_MONEY, NULL);
@@ -37,19 +37,19 @@ static int check_private_cmd(char *text, Player *pl){
         }
 
         if(my_strstr(text, CMD_RET) != NULL){
-            if(pl->state == ps_player || pl->role == pr_none){
+            if(pl->state == PS_PLAYER || pl->role == PR_NONE){
                 bot_send_msg(&mBot, pl->user_id, MSG_NOT_NEED, NULL);
             }else if(pl->balance < PRICE_RET){
                 bot_send_msg(&mBot, pl->user_id, MSG_NEED_MONEY, NULL);
             }else{
-                pl->state = ps_player;
-                pl->flag = pf_none;
+                pl->state = PS_PLAYER;
+                pl->flag = PF_NONE;
                 pl->game->num_players++;
                 switch(pl->role){
-                case pr_maffia:
+                case PR_MAFFIA:
                     pl->game->num_maffia++;
                     break;
-                case pr_maniac:
+                case PR_MANIAC:
                     pl->game->has_maniac = 1;
                     break;
                 default:
@@ -95,7 +95,7 @@ static void new_chat_member(JSONObj *from, JSONObj *chat,  JSONObj *user){
         }
     }
 
-    int userIsI = userIsMe(user);
+    int userIsI = user_is_me(user);
 
     Game *gm = get_game(chat);
     if(gm == NULL){
@@ -195,7 +195,7 @@ static void private_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
 
     Game *gm = pl->game;
 
-    if(pl->action == pa_wait_answer &&
+    if(pl->action == PA_WAIT_ANSWER &&
             now_playing(gm) == 1){
 
         if(my_strstr(text, CMD_VOTE) == NULL){//_PARSE
@@ -229,12 +229,12 @@ static void private_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         }
 
         pl->victim = victim;
-        pl->action = (pa_none);
+        pl->action = (PA_NONE);
 
-        if(pl->role == pr_cop && gm->state == gs_night){
+        if(pl->role == PR_COP && gm->state == GS_NIGHT){
             char *msg =
                     build_request("%s is %s", victim->full_name,
-                                  (victim->role == pr_maffia &&
+                                  (victim->role == PR_MAFFIA &&
                                    !victim->hide) ? "Maffia" : "Civilian");
             bot_send_msg(&mBot, pl->user_id, msg, NULL);
             if(msg != NULL){
@@ -283,9 +283,9 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
             pl = insert_player(chat_id, from);
             if(pl != NULL){
                 if(now_playing(gm) == 1){
-                    pl->action = (pa_none);
-                    pl->role = pr_none;
-                    pl->state = ps_watcher;
+                    pl->action = (PA_NONE);
+                    pl->role = PR_NONE;
+                    pl->state = PS_WATCHER;
                 }
               bot_send_msg(&mBot, chat_id, MSG_JOINED, NULL);
             }
@@ -361,7 +361,7 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         }
     }
     else if(my_strstr(text, CMD_START_VOTE) != NULL){
-        if(gm->state == gs_day)
+        if(gm->state == GS_DAY)
         {
             gm->time_state = 0;
         }
@@ -381,7 +381,7 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
 
 
 
-int botListener(JSONObj *upd){
+int bot_listener(JSONObj *upd){
 
 
     if(upd == NULL || upd->type != JSON_OBJECT){

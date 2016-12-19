@@ -14,8 +14,8 @@
 typedef void * Pointer;
 
 
-typedef enum game_states {gs_created, gs_none, gs_players_waiting, gs_day,
-                             gs_night, gs_vote } game_states;
+typedef enum game_states {GS_CREATED, GS_PLAYERS_WAITING, GS_DAY,
+                          GS_NIGHT, GS_VOTE, GS_NONE, } game_states;
 struct tPlayer;
 
 typedef struct tGame{
@@ -40,17 +40,17 @@ typedef struct tGame{
 
 
 
-typedef enum player_states {ps_created, ps_watcher,
-                             ps_player, ps_none, } player_states;
+typedef enum player_states {PS_CREATED, PS_WATCHER,
+                            PS_PLAYER, PS_NONE, } player_states;
 
-typedef enum player_flags {pf_killed, pf_cured, pf_kicked, pf_enjoy,
-                            pf_enjoy_cured, pf_none, } player_flags;
+typedef enum player_flags {PF_KILLED, PF_CURED, PF_KICKED, PF_ENJOY,
+                           PF_ENJOY_CURED, PF_NONE, } player_flags;
 
 
-typedef enum player_roles {pr_civilian, pr_maffia, pr_doctor, pr_cop,
-                             pr_whore, pr_maniac, pr_none, } player_roles;
+typedef enum player_roles {PR_CIVILIAN, PR_MAFFIA, PR_DOCTOR, PR_COP,
+                           PR_WHORE, PR_MANIAC, PR_NONE, } player_roles;
 
-typedef enum player_actions {pa_none, pa_wait_answer, } player_actions;
+typedef enum player_actions {PA_NONE, PA_WAIT_ANSWER, } player_actions;
 
 
 typedef struct tWinsStat{

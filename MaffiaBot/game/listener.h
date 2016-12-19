@@ -8,6 +8,6 @@
 
 telegramBot mBot;
 
-int botListener(JSONObj *upd);
+int bot_listener(JSONObj *upd);
 
 #endif

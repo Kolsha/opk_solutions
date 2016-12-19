@@ -1,6 +1,14 @@
 #ifndef CONSTS_GAME_H
 #define CONSTS_GAME_H
 
+
+/*********EXIT-CODES************************/
+#define EXIT_MSG_BAD_BOT 1
+#define EXIT_MSG_MEMORY 2
+/*********EXIT-CODES************************/
+
+
+
 /*********GAME-PARAMS************************/
 #define MIN_PLAYERS_COUNT 2
 #define MAX_PLAYERS_COUNT 20
