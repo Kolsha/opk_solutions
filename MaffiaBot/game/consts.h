@@ -98,10 +98,10 @@
 #define ACMD_EXIT "#exit"
 
 #define ACMD_SETRICH "#setrich"
-#define ACMD_SETRICH_H "#setrich " ACMD_USERNAME_H ""
+#define ACMD_SETRICH_H ACMD_SETRICH " " ACMD_USERNAME_H ""
 
 #define ACMD_SENDMSG "#sendmsg"
-#define ACMD_SENDMSG_H "#sendmsg " ACMD_USERNAME_H " text"
+#define ACMD_SENDMSG_H ACMD_SENDMSG " " ACMD_USERNAME_H " text"
 /*********ADMIN-CMDS******/
 
 
@@ -112,12 +112,12 @@
 /*********PRIVATE-MSGS******/
 #define PLAYER_STAT \
     "Statistic\nCivilian: %zu\nManiac: %zu\nMaffia: %zu\nNumber of deaths: %zu\nBalance: %zu"
-#define MSG_BAD_VOTE "What you want? Vote please or i choose rand"
+#define MSG_BAD_VOTE "What you want? Vote please or I choose rand"
 #define MSG_PRIVATE_FAQ E_WARN " Add me in group and use " CMD_START " to start game " BS_HAPPY ""
 #define MSG_NOT_NEED "You don't need it " BS_HAPPY ""
 #define MSG_NEED_MONEY "Not enough money " BS_SAD ""
 #define MSG_HIDED "You are hidden from the cop " BS_HAPPY ""
-#define MSG_RET "You are alive."
+#define MSG_RET "You are alive " BS_HAPPY ""
 #define MSG_VOTE_ALL E_WARN " Day voting"
 /*********PRIVATE-MSGS******/
 
@@ -149,20 +149,22 @@
     E_WARN " %s i can't send your role, ask me himself " CMD_ROLE " in private chat " BS_HAPPY ""
 
 #define MSG_NEED_JOIN "You are not in the game, use " CMD_JOIN ""
-#define MSG_JOINED "You are joined"
+#define MSG_JOINED "You are joined!" BS_HAPPY ""
+#define MSG_ALREADY_IN_GAME "You are already in this game " BS_HAPPY ""
 /*********GAME-MSGS******/
 
 
 /*********OTHER-MSGS******/
-#define MSG_CMD_404 E_WARN " Command not found"
-#define MSG_ERROR E_WARN " Sorry, an error occurred"
+#define MSG_CMD_404 E_WARN " Command not found" BS_DIS ""
+#define MSG_ERROR E_WARN " Sorry, an error occurred" BS_DIS ""
 #define MSG_BAD_CHAT E_WARN " Guys I can't work here, kill me " BS_HAPPY ""
-#define MSG_MEMORY_ERROR "Memory problem. Buy new PC."
-#define MSG_CHAT_MEMORY E_WARN " I ran out of memory. Come back later."
+#define MSG_MEMORY_ERROR "Memory problem. Buy new PC." BS_DIS ""
+#define MSG_CHAT_MEMORY E_WARN " I ran out of memory. Come back later." BS_DIS ""
 #define MSG_FEW_PLAYERS E_WARN " Too few players. Min: " STR(MIN_PLAYERS_COUNT) " " BS_DIS ""
 #define MSG_MANY_PLAYERS E_WARN " Too many players. Max: " STR(MAX_PLAYERS_COUNT) " " BS_DIS ""
 
 #define MSG_GROUP_SCANNED "Group scanned! " BS_HAPPY ""
+#define MSG_BOT_STOPPED "Bot stopped! " BS_HAPPY ""
 /*********OTHER-MSGS******/
 
 

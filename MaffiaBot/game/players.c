@@ -300,7 +300,7 @@ char *get_player_night_action(Player *pl){
     case PR_MANIAC:
         return "Who will be killed?";
     case PR_WHORE:
-        return "Who today has sex?";
+        return "Who today has sex?" BS_HAPPY "";
     default:
         return NULL;
     }
@@ -326,10 +326,9 @@ Player *get_rand_player(Game *gm){
                 || pl->state != PS_PLAYER){
             continue;
         }
-        if(num == pos){
+        if(num == pos++){
             return pl;
         }
-        pos++;
     }
 
     pl = (Player*)gm->players->data;
@@ -392,6 +391,8 @@ static void read_player_from_file(char *fn){
 }
 
 static int save_players_traverse(char *key, Pointer data, Pointer extra_data){
+
+    extra_data = NULL;
 
     if(key == NULL || data == NULL){
         return 1;
