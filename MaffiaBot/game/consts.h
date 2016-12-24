@@ -1,6 +1,9 @@
 #ifndef CONSTS_GAME_H
 #define CONSTS_GAME_H
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
 
 /*********EXIT-CODES************************/
 #define EXIT_MSG_BAD_BOT 1
@@ -10,7 +13,7 @@
 
 
 /*********GAME-PARAMS************************/
-#define MIN_PLAYERS_COUNT 2
+#define MIN_PLAYERS_COUNT 4
 #define MAX_PLAYERS_COUNT 20
 #define MAX_MAFFIA_COUNT 5
 
@@ -60,6 +63,8 @@
 #define CMD_START_VOTE "/vote"
 #define CMD_TIME_LEFT "/timeleft"
 #define CMD_TIME_ADD "/timeadd"
+#define CMD_HELP "/help"
+#define CMD_SCAN "/scan"
 /*********GROUP-CMDS******/
 
 
@@ -154,8 +159,25 @@
 #define MSG_BAD_CHAT E_WARN " Guys I can't work here, kill me " BS_HAPPY ""
 #define MSG_MEMORY_ERROR "Memory problem. Buy new PC."
 #define MSG_CHAT_MEMORY E_WARN " I ran out of memory. Come back later."
-#define MSG_FEW_PLAYERS E_WARN " Too few players " BS_DIS ""
+#define MSG_FEW_PLAYERS E_WARN " Too few players. Min: " STR(MIN_PLAYERS_COUNT) " " BS_DIS ""
+#define MSG_MANY_PLAYERS E_WARN " Too many players. Max: " STR(MAX_PLAYERS_COUNT) " " BS_DIS ""
+
+#define MSG_GROUP_SCANNED "Group scanned! " BS_HAPPY ""
 /*********OTHER-MSGS******/
 
 
+/*********HELP******/
+#define BOT_HELP_ALL "Use " CMD_START " when you collect friends and want to start game\n"\
+    CMD_STOP " game\n"\
+    CMD_JOIN " to game, if game not runned now, else - you watcher\n"\
+    "You can " CMD_LEAVE " any moment\n"\
+    "Admin can say " CMD_START_VOTE " to start vote right now\n"\
+    "Or say " CMD_TIME_ADD " to slowdown time\n"\
+    CMD_TIME_LEFT " say how many time left\n"\
+    "Say " CMD_ROLE " to know you game role\n"\
+    CMD_STAT " displays your statistics\n"\
+    CMD_HIDE " you from cop, if you Maffia\n"\
+    CMD_RET " - If you died, do alive\n"\
+    CMD_SCAN " - scan current group and auto add chat admins to game"
+/*********HELP******/
 #endif

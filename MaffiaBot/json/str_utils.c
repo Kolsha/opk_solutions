@@ -7,6 +7,9 @@
 #include "str_utils.h"
 #include "utf16to8.h"
 
+
+static FILE *_log_file_ = NULL;
+
 char *frmt_time(time_t tm){
 
     if(tm < 0){
@@ -149,6 +152,14 @@ char *build_request(char *frmt, ...){
     return buffer;
 }
 
+void _init_log_(){
+
+    if(_log_file_ == NULL){
+        _log_file_ = fopen(_LOG_FILE_NAME_, "a");
+    }
+
+}
+
 void _Log_(char *frmt, ...){
 
     if (frmt == NULL){
@@ -181,6 +192,11 @@ void _Log_(char *frmt, ...){
     vprintf(modified, args);
     vprintf("\n", NULL);
 
+    if(_log_file_ != NULL){
+        vfprintf(_log_file_, modified, args);
+        vfprintf(_log_file_, "\n", NULL);
+    }
+
     free(modified);
 
     if(now != NULL){
@@ -191,6 +207,13 @@ void _Log_(char *frmt, ...){
     va_end(args);
 }
 
+void _cleanup_log_(){
+
+    if(_log_file_ != NULL){
+        fclose(_log_file_);
+    }
+    _log_file_ = NULL;
+}
 
 
 char get_next_type(char *str, size_t *pos){

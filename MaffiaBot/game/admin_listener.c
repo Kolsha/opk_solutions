@@ -109,6 +109,7 @@ void admin_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         ht_destroy(games);
         ht_destroy(players);
         bot_send_msg(&mBot, chat_id, "Bot stopped", NULL);
+        bot_obtain_updates(&mBot, NULL);
         bot_clear(&mBot);
         json_destroy();
         return ;

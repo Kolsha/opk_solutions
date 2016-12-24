@@ -4,13 +4,19 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define _LOG_FILE_NAME_ "log.txt"
+
 char get_next_type(char *str, size_t *pos);
 
 char *copystr(const char *str, size_t count);
 
 char *get_str(char *str, size_t *pos);
 
+void _init_log_();
+
 void _Log_(char *frmt, ...);
+
+void _cleanup_log_();
 
 char *my_strcat(char *s1, char *s2);
 

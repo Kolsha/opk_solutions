@@ -21,6 +21,11 @@ static int check_private_cmd(char *text, Player *pl){
         return 0;
     }
 
+    if(my_strstr(text, CMD_HELP) != NULL){
+        bot_send_msg(&mBot, pl->user_id, BOT_HELP_ALL, NULL);
+        return 1;
+    }
+
     if(pl->game != NULL && now_playing(pl->game)){
         if(my_strstr(text, CMD_HIDE) != NULL){
             if(pl->role != PR_MAFFIA ||
@@ -278,8 +283,10 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         return ;
     }
 
+    int start_cmd = my_strstr(text, CMD_START) != NULL;
+
     if(pl->game == NULL){
-        if(my_strstr(text, CMD_JOIN) != NULL){
+        if(my_strstr(text, CMD_JOIN) != NULL || start_cmd){
             pl = insert_player(chat_id, from);
             if(pl != NULL){
                 if(now_playing(gm) == 1){
@@ -287,12 +294,14 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
                     pl->role = PR_NONE;
                     pl->state = PS_WATCHER;
                 }
-              bot_send_msg(&mBot, chat_id, MSG_JOINED, NULL);
+                bot_send_msg(&mBot, chat_id, MSG_JOINED, NULL);
             }
         }else{
             bot_send_msg(&mBot, chat_id, MSG_NEED_JOIN, NULL);
         }
-        return ;
+        if(!start_cmd){
+            return ;
+        }
     }
 
     if(pl == NULL){
@@ -346,13 +355,22 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
 
 
 
-    if(my_strstr(text, CMD_START) != NULL){
+    if(start_cmd){
         start_game(gm);
         return ;
     }
 
+    else if(my_strstr(text, CMD_SCAN) != NULL){
+        if(!now_playing(gm)){
+            scan_players(gm);
+            bot_send_msg(&mBot, chat_id, MSG_GROUP_SCANNED, NULL);
+        }else{
+            bot_send_msg(&mBot, chat_id, MSG_GAME_ALREADY_STOPPED, NULL);
+        }
+    }
+
     else if(my_strstr(text, CMD_STOP) != NULL){
-        if(now_playing(gm) == 0){
+        if(!now_playing(gm)){
 
             bot_send_msg(&mBot, chat_id, MSG_GAME_ALREADY_STOPPED, NULL);
         }else{
@@ -373,9 +391,7 @@ static void group_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         }
     }
     else{
-
         bot_send_msg(&mBot, chat_id, MSG_CMD_404, NULL);
-
     }
 }
 

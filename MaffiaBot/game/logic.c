@@ -14,7 +14,7 @@ static int send_vote(Game *gm);
 
 int game_process();
 
-static void scan_players(Game *gm){
+void scan_players(Game *gm){
 
     if(gm == NULL || gm->chat_id[0] == '\0'){
         return ;
@@ -64,6 +64,7 @@ int run_game(char *token){
     srand(time(NULL));
     //Init
     {
+        _init_log_();
         bot_clear(&mBot);
         mBot.token = (char*) strdup(token);
         if(!bot_check(&mBot)){
@@ -119,7 +120,7 @@ int run_game(char *token){
 
         now = time(NULL);
     }
-
+    _cleanup_log_();
     return 0;
 }
 
@@ -182,13 +183,18 @@ void start_game(Game *gm){
         return ;
     }
 
-    scan_players(gm);
+    //scan_players(gm);
 
-    if(gm->num_players < MIN_PLAYERS_COUNT || gm->players == NULL){
+    if(gm->num_players < MIN_PLAYERS_COUNT || gm->players == NULL
+            || gm->num_players > MAX_PLAYERS_COUNT){
 
         set_game_state(gm, GS_PLAYERS_WAITING);
-        bot_send_msg(&mBot, gm->chat_id, MSG_FEW_PLAYERS, NULL);
 
+        if(gm->players != NULL){
+            bot_send_msg(&mBot, gm->chat_id, (gm->num_players < MIN_PLAYERS_COUNT)?
+                             MSG_FEW_PLAYERS:
+                             MSG_MANY_PLAYERS, NULL);
+        }
         return ;
     }
 

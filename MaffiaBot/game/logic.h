@@ -12,4 +12,6 @@ void start_game(Game *gm);
 
 int run_game(char *token);
 
+void scan_players(Game *gm);
+
 #endif
