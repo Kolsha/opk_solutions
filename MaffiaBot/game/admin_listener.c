@@ -37,7 +37,7 @@ static char *get_username_from_str(char *str){
 
     char *end = my_strstr(uname, " ");
     if(end == NULL){
-        return NULL;
+        return (char*)strdup(uname);
     }
 
     uname = copystr(uname, (end - uname));
@@ -132,7 +132,7 @@ void admin_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
         if(admin_action.data != NULL){
             admin_action.data += my_strlen(username) + 1;
         } else{
-            return ;
+            admin_action.action = -1;
         }
     }else if(my_strstr(text, ACMD_SETRICH)){
         admin_action.action = 2;
@@ -140,11 +140,12 @@ void admin_message(JSONObj *msg, JSONObj *from, JSONObj *chat){
 
     if(admin_action.action){
         ht_traverse(players, &admin_action_traverse, &admin_action);
+        bot_send_msg(&mBot, chat_id, ACMD_EXECUTED, NULL);
     }
 
     if(username != NULL){
         free(username);
     }
-    bot_send_msg(&mBot, chat_id, text, NULL);
+
 }
 
