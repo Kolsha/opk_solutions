@@ -1,8 +1,6 @@
 #ifndef PLAYERS
 #define PLAYERS
 
-#include <stdlib.h>
-
 #include "json/json.h"
 #include "json/hash_table.h"
 #include "game/game.h"

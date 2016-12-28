@@ -1,20 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <time.h>
-
-#include "json/json.h"
-#include "json/hash_table.h"
-#include "json/str_utils.h"
-#include "tlgrmBot/tlgrmBot.h"
-
-#include "myHttp/myHttp.h"
-#include "game/game.h"
-#include "game/listener.h"
-#include "game/players.h"
-#include "game/logic.h"
 
 #include "game/admin_listener.h"
+#include "game/types.h"
+#include "game/listener.h"
+#include "tlgrmBot/tlgrmBot.h"
 
 typedef struct AdminAction{
     int action;

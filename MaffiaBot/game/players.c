@@ -18,8 +18,6 @@
 #include "game/listener.h"
 #include "game/types.h"
 
-#include "myHttp/myHttp.h"
-
 int user_is_me(JSONObj *user){
 
     if(user  == NULL || !mBot.valid){
@@ -184,7 +182,9 @@ Player *insert_player(char *chat_id, JSONObj *user){
                     gm->num_players++;
                 }
                 else{
-                    //catch error
+                    _Log_("%s can't added in %s, assert must called",
+                          pl->full_name, gm->title);
+                    assert(1 > 2);
                 }
             }
             _Log_("%s join to group: %s", pl->full_name, gm->title);
@@ -214,7 +214,9 @@ Player *insert_player(char *chat_id, JSONObj *user){
                 gm->num_players++;
             }
             else{
-                //catch error
+                _Log_("%s can't added in %s, assert must called",
+                      pl->full_name, gm->title);
+                assert(1 > 2);
             }
         }
         _Log_("%s join to group: %s", pl->full_name, gm->title);

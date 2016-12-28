@@ -1,8 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <stdlib.h>
-
 #include "tlgrmBot/tlgrmBot.h"
 #include "json/json.h"
 #include "json/hash_table.h"

@@ -1,7 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <stdlib.h>
 #include "game/types.h"
 
 int game_process();
