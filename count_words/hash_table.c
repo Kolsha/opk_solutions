@@ -166,7 +166,9 @@ int ht_resize(HashTable *ht, size_t new_size){
     for(size_t i = 0; i < hsize; i++){
         if(htable[i] != NULL)
         {
-            assert(ht_set(ht, htable[i]->key, htable[i]->data) != NULL);
+            if(ht_set(ht, htable[i]->key, htable[i]->data) == NULL){
+                exit(1);
+            }
             free(htable[i]->key);
             free(htable[i]);
         }

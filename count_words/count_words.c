@@ -96,7 +96,7 @@ static char *getword(char *str, size_t *pos){
     char arr[50] = {0};
     size_t i = 0;
     size_t p = *pos - 1;
-    while(str[*pos] != 0 && isalpha(str[p])){
+    while(str[*pos] != 0 && (isalpha(str[p]) || str[p] == '-')){
         arr[i++] = tolower(str[p++]);
     }
     *pos = p;
@@ -171,7 +171,8 @@ CounterResult *getstat(char *str){
 
 static int print_words(char *key, Pointer data){
 
-    printf("%s - %d\n", key, (size_t)data);
+    printf("%s: %d\n", key, (size_t)data);
+    return 1;
 }
 
 void print_inf(CounterResult *res){
@@ -187,7 +188,7 @@ void print_inf(CounterResult *res){
     printf("\nPunctuation: %d", res->punctuation);
     printf("\nSymbols: %d", res->symbols);
     printf("\nNumbers: %d", res->numbers);
-    printf("\nWords stat: \n\n", res->numbers);
+    printf("\nWords stat: \n\n");
 
     ht_traverse(&(res->hWords), &print_words);
 }

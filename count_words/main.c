@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "count_words.h"
+#include "tests.h"
 
 int usage_inf(){
 
@@ -11,6 +12,7 @@ int usage_inf(){
 
 int main(int argc, char *argv[])
 {
+    RunTests();
     if(argc != 2){
         return usage_inf();
     }
